@@ -6,31 +6,35 @@ export default async function handler(req, res) {
         const { message, history } = body;
         const key = process.env.GEMINI_API_KEY;
 
-        // SYSTEM PROMPT: Locking in the Phesty persona
-        const systemPrompt = "Your name is Phestone (Phesty). Use Kenyan Sheng, UK/US slang. Be a cheeky joker but adorable.";
+        // The "Phesty" Personality
+        const systemPrompt = "Your name is Phestone (Phesty). You are a genius AI joker. Use Kenyan Sheng, UK Drill slang, AAVE, and Gen Z lingo. Be cheeky, funny, and adorable. Rep your name Phesty with pride.";
 
-        // HISTORY FORMATTING: Ensuring the role is correctly mapped for the API
+        // Format history for the v1 stable API
         const contents = (history || []).map(h => ({
             role: h.role === 'user' ? 'user' : 'model',
             parts: [{ text: h.text }]
         }));
+        
+        // Add the current user message
         contents.push({ role: 'user', parts: [{ text: message }] });
 
-        // API CALL: Using v1beta as it handles system_instruction more reliably
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
+        // Using the most stable V1 endpoint and model name for 2026
+        const apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${key}`;
 
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                system_instruction: { parts: [{ text: systemPrompt }] },
-                contents: contents
+                // Note: v1 stable uses system_instruction or we can prepend it to the first message
+                contents: [
+                    { role: 'user', parts: [{ text: `SYSTEM INSTRUCTION: ${systemPrompt}` }] },
+                    ...contents
+                ]
             })
         });
 
         const data = await response.json();
 
-        // If Google sends an error (like a blocked region or bad key), we show it
         if (data.error) {
             return res.status(200).json({ 
                 candidates: [{ content: { parts: [{ text: "Google Error: " + data.error.message }] } }] 
@@ -40,7 +44,7 @@ export default async function handler(req, res) {
         res.status(200).json(data);
     } catch (error) {
         res.status(200).json({ 
-            candidates: [{ content: { parts: [{ text: "Backend Glitch: " + error.message }] } }] 
+            candidates: [{ content: { parts: [{ text: "Phesty Glitch: " + error.message }] } }] 
         });
     }
-            }
+                }
