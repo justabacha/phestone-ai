@@ -1,80 +1,56 @@
-const userImg = "https://i.postimg.cc/rpD4fgxR/IMG-5898-2.jpg";
-const aiImg = "https://i.postimg.cc/L5tLzXfJ/IMG-6627-2.jpg";
-let chatHistory = JSON.parse(localStorage.getItem('phesty_memory')) || [];
-let deferredPrompt;
+// --- WALLPAPER PICKER ---
+const bgUpload = document.getElementById('bg-upload');
+const mainBg = document.getElementById('main-bg');
 
-// --- SMART INSTALL LOGIC ---
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    document.getElementById('installBtn').style.display = 'block';
-});
+// Load saved wallpaper on start
+const savedBg = localStorage.getItem('phesty_bg');
+if (savedBg) mainBg.style.backgroundImage = `url(${savedBg})`;
 
-document.getElementById('installBtn').addEventListener('click', async () => {
-    if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
-            document.getElementById('installBtn').style.display = 'none';
-        }
-        deferredPrompt = null;
+bgUpload.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const imgUrl = event.target.result;
+            mainBg.style.backgroundImage = `url(${imgUrl})`;
+            localStorage.setItem('phesty_bg', imgUrl);
+        };
+        reader.readAsDataURL(file);
     }
 });
 
-// Hide install button if already in standalone mode
-if (window.matchMedia('(display-mode: standalone)').matches) {
-    document.getElementById('installBtn').style.display = 'none';
+// --- VOICE (SPEECH TO TEXT) ---
+const micBtn = document.getElementById('micBtn');
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if (SpeechRecognition) {
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.lang = 'en-US'; // We can try to find a Sheng-friendly setting later
+
+    micBtn.onclick = () => {
+        micBtn.innerHTML = "🛑";
+        recognition.start();
+    };
+
+    recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById('userMsg').value = transcript;
+        micBtn.innerHTML = "🎤";
+        sendMsg(); // Automatically send after talking
+    };
+
+    recognition.onerror = () => { micBtn.innerHTML = "🎤"; };
 }
 
-window.onload = () => {
-    chatHistory.forEach(msg => displayMessage(msg.role, msg.text));
-    scrollToBottom();
-};
-
-async function sendMsg() {
-    const input = document.getElementById('userMsg');
-    const text = input.value.trim();
-    if (!text) return;
-
-    displayMessage('user', text);
-    input.value = '';
-    chatHistory.push({ role: 'user', text: text });
-
-    const chatBox = document.getElementById('chat-box');
-    const typingDiv = document.createElement('div');
-    typingDiv.id = 'typing-indicator';
-    typingDiv.className = 'msg-wrapper ai-wrapper';
-    typingDiv.innerHTML = `<img src="${aiImg}" class="avatar"><div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
-    chatBox.appendChild(typingDiv);
-    scrollToBottom();
-
-    try {
-        const res = await fetch('/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: text, history: chatHistory })
-        });
-        const data = await res.json();
-        if (document.getElementById('typing-indicator')) document.getElementById('typing-indicator').remove();
-        const reply = data.candidates[0].content.parts[0].text;
-        displayMessage('ai', reply);
-        chatHistory.push({ role: 'ai', text: reply });
-        localStorage.setItem('phesty_memory', JSON.stringify(chatHistory));
-    } catch (e) {
-        if (document.getElementById('typing-indicator')) document.getElementById('typing-indicator').remove();
-        displayMessage('ai', "Oya, network inasumbua.");
-    }
+// --- VOICE OUT (TEXT TO SPEECH) ---
+function speak(text) {
+    const utterance = new SpeechSynthesisUtterance(text);
+    // You can't use "your" voice yet (that requires AI training), 
+    // but we can pick a "Cool/Deep" voice from your phone.
+    const voices = window.speechSynthesis.getVoices();
+    utterance.voice = voices.find(v => v.name.includes('Google UK English Male')) || voices[0];
+    window.speechSynthesis.speak(utterance);
 }
-
-function displayMessage(role, text) {
-    const chatBox = document.getElementById('chat-box');
-    const wrapper = document.createElement('div');
-    wrapper.className = `msg-wrapper ${role}-wrapper`;
-    wrapper.innerHTML = `<img src="${role==='user'?userImg:aiImg}" class="avatar"><div class="${role}"><div class="bubble">${text}</div></div>`;
-    chatBox.appendChild(wrapper);
-    scrollToBottom();
-}
-
-function scrollToBottom() { const b = document.getElementById('chat-box'); b.scrollTop = b.scrollHeight; }
-function handleKey(e) { if (e.key === 'Enter') sendMsg(); }
+// To make him talk, add speak(reply) inside your sendMsg() function!
         
