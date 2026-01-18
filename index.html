@@ -7,26 +7,29 @@
     <link rel="manifest" href="/manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="https://i.postimg.cc/L5tLzXfJ/IMG-6627-2.jpg">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="hd-bg"></div> <div class="app-container">
+    <div id="main-bg" class="hd-bg"></div>
+    <div class="app-container">
         <header>
             <h1>Phesty</h1>
-            <button id="installBtn" style="display:none;">Install</button>
+            <div class="header-tools">
+                <label for="bg-upload" class="tool-btn">🖼️</label>
+                <input type="file" id="bg-upload" accept="image/*" style="display:none">
+                <button id="installBtn" style="display:none;">Install</button>
+            </div>
         </header>
 
         <div id="chat-box" class="chat-box"></div>
 
         <div class="input-area">
+            <button class="extra-btn">📷</button>
             <input type="text" id="userMsg" placeholder="Rada?..." onkeypress="handleKey(event)">
-            <button onclick="sendMsg()" id="sendBtn">
-                <svg viewBox="0 0 24 24" width="24" height="24" fill="black"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-            </button>
+            <button id="micBtn" class="extra-btn">🎤</button>
+            <button onclick="sendMsg()" id="sendBtn">➡️</button>
         </div>
     </div>
     <script src="script.js"></script>
 </body>
-    </html>
-    
+</html>
