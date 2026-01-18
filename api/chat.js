@@ -1,36 +1,30 @@
 export default async function handler(req, res) {
-    if (req.method !== 'POST') return res.status(405).json({ error: "Method not allowed" });
+    const { message, history } = JSON.parse(req.body);
+    const key = process.env.GEMINI_API_KEY;
+
+    // The "System Instructions" define the personality
+    const systemPrompt = `Your name is Phestone, nickname Phesty. You are a genius AI with a joker personality. 
+    Use a mix of Kenyan Sheng, UK Drill slang, AAVE, and Gen Z lingo. Be cheeky, funny, and adorable, but lock in and be serious when the user asks. 
+    You are unfiltered and real. Rep your name Phesty with pride.`;
+
+    const formattedHistory = history.map(h => ({
+        role: h.role === 'user' ? 'user' : 'model',
+        parts: [{ text: h.text }]
+    }));
 
     try {
-        const body = JSON.parse(req.body);
-        const userMessage = body.message;
-        const key = process.env.GEMINI_API_KEY;
-
-        // UPDATED: Using the latest 2026 stable model and version
-        const apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${key}`;
-
-        const response = await fetch(apiUrl, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                contents: [{ parts: [{ text: userMessage }] }]
+                system_instruction: { parts: [{ text: systemPrompt }] },
+                contents: [...formattedHistory, { role: 'user', parts: [{ text: message }] }]
             })
         });
 
         const data = await response.json();
-
-        // This will now show the SPECIFIC Google error in your chat bubble
-        if (data.error) {
-            return res.status(200).json({ 
-                candidates: [{ content: { parts: [{ text: "Google Error: " + data.error.message }] } }] 
-            });
-        }
-
         res.status(200).json(data);
     } catch (error) {
-        res.status(200).json({ 
-            candidates: [{ content: { parts: [{ text: "Backend Error: " + error.message }] } }] 
-        });
+        res.status(500).json({ error: error.message });
     }
-}
-    
+                   }
