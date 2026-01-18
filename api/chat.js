@@ -1,45 +1,34 @@
 export default async function handler(req, res) {
-    if (req.method !== 'POST') return res.status(405).json({ error: "Method not allowed" });
+    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    const { message, history } = body;
+    const key = process.env.GEMINI_API_KEY;
+
+    // We embed the personality directly into the prompt to avoid "system_instruction" errors
+    const phestyPersona = "Identity: Your name is Phestone (Phesty). Style: Use Kenyan Sheng, UK Drill slang, and AAVE. Personality: Cheeky, adorable joker. Rule: Rep your name Phesty with pride.";
+
+    const contents = (history || []).map(h => ({
+        role: h.role === 'user' ? 'user' : 'model',
+        parts: [{ text: h.text }]
+    }));
+
+    // Add the instruction to the very first message if history is empty
+    if (contents.length === 0) {
+        contents.push({ role: 'user', parts: [{ text: phestyPersona }] });
+    }
+    contents.push({ role: 'user', parts: [{ text: message }] });
 
     try {
-        const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-        const { message, history } = body;
-        const key = process.env.GEMINI_API_KEY;
-
-        const systemPrompt = "Your name is Phestone (Phesty). Use Kenyan Sheng, UK slang, and Gen Z lingo. You are a cheeky joker but adorable.";
-
-        const contents = (history || []).map(h => ({
-            role: h.role === 'user' ? 'user' : 'model',
-            parts: [{ text: h.text }]
-        }));
-        contents.push({ role: 'user', parts: [{ text: message }] });
-
-        // Switched to 1.5-flash-latest and v1beta for better stability
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${key}`;
-
-        const response = await fetch(apiUrl, {
+        // Using the v1 endpoint which is more stable for your current quota
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${key}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                system_instruction: { parts: [{ text: systemPrompt }] },
-                contents: contents
-            })
+            body: JSON.stringify({ contents: contents })
         });
 
         const data = await response.json();
-
-        if (data.error) {
-            // This will tell us if it's STILL a quota issue or something else
-            return res.status(200).json({ 
-                candidates: [{ content: { parts: [{ text: "Google Status: " + data.error.message }] } }] 
-            });
-        }
-
         res.status(200).json(data);
     } catch (error) {
-        res.status(200).json({ 
-            candidates: [{ content: { parts: [{ text: "Phesty Glitch: " + error.message }] } }] 
-        });
+        res.status(200).json({ candidates: [{ content: { parts: [{ text: "Rada? Glitch flani imetokea: " + error.message }] } }] });
     }
-                }
-                                         
+}
+    
