@@ -23,13 +23,16 @@
 
         <div id="chat-box" class="chat-box"></div>
 
-        <div class="input-area">
-            <button class="extra-btn">📷</button>
-            <input type="text" id="userMsg" placeholder="Rada?..." onkeypress="handleKey(event)">
-            <button id="micBtn" class="extra-btn">🎤</button>
-            <button onclick="sendMsg()" id="sendBtn">➡️</button>
+        <div class="input-area-wrapper">
+            <div class="input-card">
+                <button class="icon-btn">🎭</button>
+                <input type="text" id="userMsg" placeholder="Rada?..." onkeypress="handleKey(event)">
+                <button id="micBtn" class="icon-btn">🎐</button>
+                <button onclick="sendMsg()" id="sendBtn" class="send-btn">📥</button>
+            </div>
         </div>
     </div>
     <script src="script.js"></script>
 </body>
-</html>
+    </html>
+    
