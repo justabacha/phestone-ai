@@ -1,53 +1,27 @@
-:root { --bg: #000; --accent: #00ff41; --glass: rgba(255, 255, 255, 0.08); }
+:root { --bg: #000; --accent: #00ff41; }
+* { box-sizing: border-box; }
+body, html { margin: 0; padding: 0; height: 100vh; background: var(--bg); color: #fff; font-family: sans-serif; overflow: hidden; }
 
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+.app-container { display: flex; flex-direction: column; height: 100vh; position: relative; }
 
-body, html { 
-    margin: 0; padding: 0; height: 100vh; width: 100vw; 
-    background: var(--bg); color: #fff; font-family: -apple-system, sans-serif; 
-    overflow: hidden; position: fixed; /* Prevents bounce scroll on mobile */
-}
+header { padding: 50px 20px 15px; border-bottom: 1px solid #222; text-align: center; flex-shrink: 0; }
+header h1 { font-size: 1rem; color: var(--accent); letter-spacing: 3px; margin: 0; }
 
-.app-container { 
-    display: flex; flex-direction: column; height: 100%; width: 100%; 
-}
-
-header { 
-    padding: 60px 20px 15px; text-align: center; border-bottom: 1px solid #111; 
-    flex-shrink: 0;
-}
-
-header h1 { font-size: 1rem; letter-spacing: 3px; color: var(--accent); margin: 0; text-transform: uppercase; }
-
-.chat-box { 
-    flex: 1; overflow-y: auto; padding: 20px; 
-    display: flex; flex-direction: column; gap: 15px; 
-    padding-bottom: 100px; /* Space for the input bar */
-}
+.chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; padding-bottom: 120px; }
 
 .msg-wrapper { display: flex; align-items: flex-end; gap: 10px; max-width: 85%; }
 .user-wrapper { align-self: flex-end; flex-direction: row-reverse; }
-
-.avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 1.5px solid #222; }
-
-.bubble { padding: 12px 16px; border-radius: 18px; font-size: 0.95rem; background: var(--glass); line-height: 1.4; }
-.user .bubble { background: #1b3d1b; color: #d1ffd1; border-bottom-right-radius: 2px; }
+.avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 1px solid #333; }
+.bubble { padding: 12px 16px; border-radius: 18px; font-size: 1rem; background: rgba(255,255,255,0.08); }
+.user .bubble { background: #1b3d1b; border-bottom-right-radius: 2px; }
 .ai .bubble { border: 1px solid #222; border-bottom-left-radius: 2px; }
 
-/* Fixed Input Bar at bottom */
+/* The Fixed Bar */
 .input-area { 
-    position: fixed; bottom: 0; left: 0; right: 0;
-    padding: 15px 15px 35px; background: #000; border-top: 1px solid #111;
-    display: flex; gap: 10px; align-items: center; z-index: 100;
+    position: absolute; bottom: 0; width: 100%; 
+    padding: 15px 15px 40px; background: #000; border-top: 1px solid #111;
+    display: flex; gap: 10px; 
 }
-
-#userMsg { 
-    flex: 1; background: #111; border: 1px solid #333; border-radius: 12px; 
-    padding: 12px 15px; color: #fff; font-size: 16px; outline: none;
-}
-
-#sendBtn { 
-    background: var(--accent); border: none; width: 48px; height: 48px; 
-    border-radius: 12px; display: flex; align-items: center; justify-content: center; 
-    box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
-}
+#userMsg { flex: 1; background: #111; border: 1px solid #333; border-radius: 10px; padding: 12px; color: #fff; font-size: 16px; outline: none; }
+#sendBtn { background: var(--accent); border: none; width: 50px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+    
