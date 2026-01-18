@@ -6,10 +6,10 @@ export default async function handler(req, res) {
         const { message, history } = body;
         const key = process.env.GEMINI_API_KEY;
 
-        // The "Phesty" Personality
+        // The "Phesty" Personality (Injected into the conversation)
         const systemPrompt = "Your name is Phestone (Phesty). You are a genius AI joker. Use Kenyan Sheng, UK Drill slang, AAVE, and Gen Z lingo. Be cheeky, funny, and adorable. Rep your name Phesty with pride.";
 
-        // Format history for the v1 stable API
+        // Format history for the API
         const contents = (history || []).map(h => ({
             role: h.role === 'user' ? 'user' : 'model',
             parts: [{ text: h.text }]
@@ -18,18 +18,15 @@ export default async function handler(req, res) {
         // Add the current user message
         contents.push({ role: 'user', parts: [{ text: message }] });
 
-        // Using the most stable V1 endpoint and model name for 2026
-        const apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${key}`;
+        // UPDATED FOR 2026: Using v1beta and gemini-2.0-flash
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`;
 
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                // Note: v1 stable uses system_instruction or we can prepend it to the first message
-                contents: [
-                    { role: 'user', parts: [{ text: `SYSTEM INSTRUCTION: ${systemPrompt}` }] },
-                    ...contents
-                ]
+                system_instruction: { parts: [{ text: systemPrompt }] },
+                contents: contents
             })
         });
 
@@ -47,4 +44,5 @@ export default async function handler(req, res) {
             candidates: [{ content: { parts: [{ text: "Phesty Glitch: " + error.message }] } }] 
         });
     }
-                }
+            }
+                                               
