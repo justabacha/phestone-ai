@@ -1,71 +1,84 @@
 :root { --accent: #00ff41; --glass: rgba(0, 0, 0, 0.6); }
 
-body, html { 
-    margin: 0; padding: 0; height: 100vh; width: 100vw; 
-    background: #000; color: #fff; font-family: -apple-system, sans-serif; 
-    overflow: hidden; 
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body { 
+    margin: 0; padding: 0; 
+    height: 100%; width: 100%; 
+    background-color: #000; /* Fallback */
+    background-position: center !important;
+    background-size: cover !important;
+    background-attachment: fixed !important;
+    background-repeat: no-repeat !important;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    overflow: hidden;
 }
 
-/* THE WALLPAPER FIX */
-.hd-bg {
-    position: fixed; 
-    top: 0; left: 0; 
-    width: 100%; height: 100%;
-    background-color: #000;
-    background-position: center;
-    background-size: cover;
-    background-repeat: no-repeat;
+/* This creates a dark tint over your photo so you can see the white text */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.4);
     z-index: -1;
-    display: block; /* Ensures it renders */
 }
 
-.app-container { display: flex; flex-direction: column; height: 100vh; position: relative; }
+.app-container { 
+    display: flex; flex-direction: column; 
+    height: 100vh; width: 100%;
+    position: relative; z-index: 1;
+}
 
-/* THIN HEADER LAYER */
+/* THIN HEADER */
 .thin-header { 
-    padding: 40px 20px 8px; /* Reduced padding for thin look */
-    display: flex; justify-content: space-between; 
-    align-items: center; 
-    backdrop-filter: blur(5px);
+    padding: 50px 20px 10px; 
+    display: flex; justify-content: space-between; align-items: center; 
 }
 .thin-header h1 { 
-    font-size: 0.75rem; /* Smaller text for phesty Ai */
-    color: var(--accent); 
-    letter-spacing: 4px; 
-    margin: 0; 
-    font-weight: 300;
+    font-size: 0.75rem; color: var(--accent); 
+    letter-spacing: 5px; margin: 0; text-transform: lowercase; font-weight: 300;
 }
 
-.chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; padding-bottom: 140px; }
+.chat-box { 
+    flex: 1; overflow-y: auto; padding: 20px; 
+    display: flex; flex-direction: column; gap: 15px; 
+    padding-bottom: 150px; 
+}
 
+/* MESSAGES */
 .msg-wrapper { display: flex; align-items: flex-end; gap: 10px; max-width: 85%; }
 .user-wrapper { align-self: flex-end; flex-direction: row-reverse; }
 
 .avatar { 
-    width: 35px !important; 
-    height: 35px !important; 
-    min-width: 35px; 
-    border-radius: 50%; 
-    object-fit: cover; 
+    width: 35px !important; height: 35px !important; 
+    min-width: 35px; border-radius: 50%; object-fit: cover; 
 }
 
 .bubble { 
-    padding: 10px 14px; border-radius: 18px; font-size: 0.95rem; 
-    background: var(--glass); backdrop-filter: blur(15px); 
+    padding: 12px 16px; border-radius: 20px; font-size: 1rem; 
+    background: var(--glass); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
     border: 1px solid rgba(255,255,255,0.1);
     color: #ffffff !important; 
-    text-shadow: 0px 1px 2px rgba(0,0,0,0.8); 
-    cursor: pointer;
+    text-shadow: 0px 1px 3px rgba(0,0,0,0.8);
+    line-height: 1.4;
 }
 .user .bubble { background: rgba(0, 255, 65, 0.15); border: 1px solid var(--accent); }
 
-.input-area-wrapper { position: fixed; bottom: 25px; left: 0; width: 100%; padding: 0 15px; }
+/* FLOATING INPUT */
+.input-area-wrapper { position: fixed; bottom: 30px; left: 0; width: 100%; padding: 0 15px; }
 .input-card {
-    background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(25px);
-    border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px;
-    display: flex; align-items: center; padding: 6px 10px; gap: 5px;
+    background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 25px;
+    display: flex; align-items: center; padding: 8px 12px; gap: 8px;
 }
 #userMsg { flex: 1; background: none; border: none; color: #fff; font-size: 16px; outline: none; }
 
-.icon-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; }
-.send-btn { background: var(--accent); border: none; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.icon-btn { background: none; border: none; font-size: 1.3rem; cursor: pointer; }
+.send-btn { 
+    background: var(--accent); border: none; width: 40px; height: 40px; 
+    border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+}
+
+.dot { width: 5px; height: 5px; background: var(--accent); border-radius: 50%; animation: blink 1.4s infinite; }
+@keyframes blink { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
+                                   
