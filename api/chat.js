@@ -4,25 +4,29 @@ export default async function handler(req, res) {
     try {
         const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
         const { message, history } = body;
-        const key = process.env.GEMINI_API_KEY;
+        const key = process.env.GROQ_API_KEY;
 
-        const systemPrompt = "Your name is Phestone (Phesty). You're a cheeky genius joker. Use Kenyan Sheng, UK slang, and Gen Z lingo. Rep your name with pride.";
+        const systemPrompt = "Your name is Phestone (Phesty). You are a genius AI joker from Kenya. Use Sheng, UK Drill slang, and AAVE. Be cheeky and adorable. Rep your name Phesty.";
 
-        const contents = (history || []).map(h => ({
-            role: h.role === 'user' ? 'user' : 'model',
-            parts: [{ text: h.text }]
-        }));
-        contents.push({ role: 'user', parts: [{ text: message }] });
+        const messages = [
+            { role: "system", content: systemPrompt },
+            ...(history || []).map(h => ({
+                role: h.role === 'user' ? 'user' : 'assistant',
+                content: h.text
+            })),
+            { role: "user", content: message }
+        ];
 
-        // USE THIS EXACT URL - v1beta + gemini-2.0-flash
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`;
-
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        // Using Groq's high-speed endpoint
+        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${key}`,
+                "Content-Type": "application/json"
+            },
             body: JSON.stringify({
-                system_instruction: { parts: [{ text: systemPrompt }] },
-                contents: contents
+                model: "llama-3.3-70b-versatile", // The top-tier Llama model for 2026
+                messages: messages
             })
         });
 
@@ -30,14 +34,19 @@ export default async function handler(req, res) {
 
         if (data.error) {
             return res.status(200).json({ 
-                candidates: [{ content: { parts: [{ text: "Google says: " + data.error.message }] } }] 
+                candidates: [{ content: { parts: [{ text: "Groq Error: " + data.error.message }] } }] 
             });
         }
 
-        res.status(200).json(data);
+        // Format the response so your existing script.js can read it
+        const reply = data.choices[0].message.content;
+        res.status(200).json({
+            candidates: [{ content: { parts: [{ text: reply }] } }]
+        });
+
     } catch (error) {
         res.status(200).json({ 
             candidates: [{ content: { parts: [{ text: "Phesty Glitch: " + error.message }] } }] 
         });
     }
-                                                  }
+                          }
