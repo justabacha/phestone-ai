@@ -6,8 +6,8 @@ export default async function handler(req, res) {
         const userMessage = body.message;
         const key = process.env.GEMINI_API_KEY;
 
-        // Using v1beta for the 1.5-flash model
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
+        // UPDATED: Using the latest 2026 stable model and version
+        const apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${key}`;
 
         const response = await fetch(apiUrl, {
             method: 'POST',
@@ -19,7 +19,7 @@ export default async function handler(req, res) {
 
         const data = await response.json();
 
-        // Check if Google sent an error instead of a message
+        // This will now show the SPECIFIC Google error in your chat bubble
         if (data.error) {
             return res.status(200).json({ 
                 candidates: [{ content: { parts: [{ text: "Google Error: " + data.error.message }] } }] 
@@ -32,4 +32,5 @@ export default async function handler(req, res) {
             candidates: [{ content: { parts: [{ text: "Backend Error: " + error.message }] } }] 
         });
     }
-                    }
+}
+    
