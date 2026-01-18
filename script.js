@@ -14,9 +14,16 @@ async function sendMsg() {
 
     displayMessage('user', text);
     input.value = '';
-    
     chatHistory.push({ role: 'user', text: text });
-    if (chatHistory.length > 50) chatHistory.shift();
+
+    // Show typing
+    const chatBox = document.getElementById('chat-box');
+    const typingDiv = document.createElement('div');
+    typingDiv.id = 'typing-indicator';
+    typingDiv.className = 'msg-wrapper ai-wrapper';
+    typingDiv.innerHTML = `<img src="${aiImg}" class="avatar"><div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+    chatBox.appendChild(typingDiv);
+    scrollToBottom();
 
     try {
         const response = await fetch('/api/chat', {
@@ -26,21 +33,15 @@ async function sendMsg() {
         });
         const data = await response.json();
         
-        // Handle Google Errors or Success
-        let reply = "";
-        if (data.candidates && data.candidates[0].content.parts[0].text) {
-            reply = data.candidates[0].content.parts[0].text;
-        } else if (data.error) {
-            reply = "Google Error: " + data.error.message;
-        } else {
-            reply = "Something went wrong, G. Try again.";
-        }
-        
+        if (document.getElementById('typing-indicator')) document.getElementById('typing-indicator').remove();
+
+        const reply = data.candidates[0].content.parts[0].text;
         displayMessage('ai', reply);
         chatHistory.push({ role: 'ai', text: reply });
         localStorage.setItem('phesty_memory', JSON.stringify(chatHistory));
     } catch (e) {
-        displayMessage('ai', "Oya, network inasumbua. Check your connection.");
+        if (document.getElementById('typing-indicator')) document.getElementById('typing-indicator').remove();
+        displayMessage('ai', "Oya, network inasumbua kidogo.");
     }
 }
 
@@ -49,19 +50,13 @@ function displayMessage(role, text) {
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const wrapper = document.createElement('div');
     wrapper.className = `msg-wrapper ${role}-wrapper`;
-    
     wrapper.innerHTML = `
         <img src="${role === 'user' ? userImg : aiImg}" class="avatar">
-        <div class="${role}">
-            <div class="bubble">${text}<span class="time">${time}</span></div>
-        </div>
+        <div class="${role}"><div class="bubble">${text}<span class="time">${time}</span></div></div>
     `;
-    
     chatBox.appendChild(wrapper);
     scrollToBottom();
 }
 
 function scrollToBottom() { const b = document.getElementById('chat-box'); b.scrollTop = b.scrollHeight; }
 function handleKey(e) { if (e.key === 'Enter') sendMsg(); }
-function clearChat() { localStorage.removeItem('phesty_memory'); location.reload(); }
-        
