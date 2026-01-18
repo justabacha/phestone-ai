@@ -2,25 +2,25 @@ const userImg = "https://i.postimg.cc/rpD4fgxR/IMG-5898-2.jpg";
 const aiImg = "https://i.postimg.cc/L5tLzXfJ/IMG-6627-2.jpg";
 let chatHistory = JSON.parse(localStorage.getItem('phesty_memory')) || [];
 
+// FIXED WALLPAPER LOGIC
+const mainBg = document.getElementById('main-bg');
 const savedBg = localStorage.getItem('phesty_bg');
-if (savedBg) document.getElementById('main-bg').style.backgroundImage = `url(${savedBg})`;
+if (savedBg) {
+    mainBg.style.backgroundImage = `url(${savedBg})`;
+}
 
 document.getElementById('bg-upload').addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
         const reader = new FileReader();
         reader.onload = (r) => {
-            document.getElementById('main-bg').style.backgroundImage = `url(${r.target.result})`;
-            localStorage.setItem('phesty_bg', r.target.result);
+            const dataUrl = r.target.result;
+            mainBg.style.backgroundImage = `url(${dataUrl})`;
+            localStorage.setItem('phesty_bg', dataUrl);
         };
         reader.readAsDataURL(file);
     }
 });
-
-window.onload = () => {
-    chatHistory.forEach(msg => displayMessage(msg.role, msg.text));
-    scrollToBottom();
-};
 
 function toggleSpeech(text) {
     const synth = window.speechSynthesis;
@@ -49,7 +49,7 @@ async function sendMsg() {
     const typingDiv = document.createElement('div');
     typingDiv.id = 'typing-indicator';
     typingDiv.className = 'msg-wrapper ai-wrapper';
-    typingDiv.innerHTML = `<img src="${aiImg}" class="avatar"><div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+    typingDiv.innerHTML = `<img src="${aiImg}" class="avatar"><div class="typing" style="display:flex; gap:4px; padding:12px; background:rgba(0,0,0,0.5); border-radius:18px;"><div class="dot" style="width:5px; height:5px; background:#00ff41; border-radius:50%; animation: blink 1.4s infinite;"></div></div>`;
     chatBox.appendChild(typingDiv);
     scrollToBottom();
 
@@ -76,14 +76,10 @@ function displayMessage(role, text) {
     const chatBox = document.getElementById('chat-box');
     const wrapper = document.createElement('div');
     wrapper.className = `msg-wrapper ${role}-wrapper`;
-    
     const clickAction = role === 'ai' ? `onclick="toggleSpeech(this.innerText)"` : "";
-    
     wrapper.innerHTML = `
         <img src="${role==='user' ? userImg : aiImg}" class="avatar">
-        <div class="${role}">
-            <div class="bubble" ${clickAction}>${text}</div>
-        </div>
+        <div class="${role}"><div class="bubble" ${clickAction}>${text}</div></div>
     `;
     chatBox.appendChild(wrapper);
     scrollToBottom();
@@ -91,4 +87,3 @@ function displayMessage(role, text) {
 
 function scrollToBottom() { const b = document.getElementById('chat-box'); b.scrollTop = b.scrollHeight; }
 function handleKey(e) { if (e.key === 'Enter') sendMsg(); }
-    
