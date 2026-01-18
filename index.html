@@ -4,25 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Phesty AI</title>
+    
+    <link rel="manifest" href="/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://i.postimg.cc/L5tLzXfJ/IMG-6627-2.jpg">
+    
     <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
 </head>
 <body>
-    <div class="nature-bg"></div>
     <div class="app-container">
         <header>
-            <div class="status-dot"></div>
             <h1>Phesty AI</h1>
-            <button onclick="clearChat()" class="clear-btn">Reset</button>
         </header>
 
-        <div id="chat-box" class="chat-box">
-            </div>
+        <div id="chat-box" class="chat-box"></div>
 
         <div class="input-area">
             <input type="text" id="userMsg" placeholder="Rada? Talk to Phesty..." onkeypress="handleKey(event)">
             <button onclick="sendMsg()" id="sendBtn">
-                <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="black">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
             </button>
         </div>
     </div>
