@@ -19,7 +19,7 @@ export default async function handler(req, res) {
         contents.push({ role: 'user', parts: [{ text: message }] });
 
         // UPDATED FOR 2026: Using v1beta and gemini-2.0-flash
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`;
 
         const response = await fetch(apiUrl, {
             method: 'POST',
