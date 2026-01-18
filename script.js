@@ -2,15 +2,16 @@ const userImg = "https://i.postimg.cc/rpD4fgxR/IMG-5898-2.jpg";
 const aiImg = "https://i.postimg.cc/L5tLzXfJ/IMG-6627-2.jpg";
 let chatHistory = JSON.parse(localStorage.getItem('phesty_memory')) || [];
 
-// Splash Screen Timer - Set to 6 Seconds
 window.addEventListener('load', () => {
     setTimeout(() => {
-        document.getElementById('splash-screen').style.opacity = '0';
+        const splash = document.getElementById('splash-screen');
+        splash.style.transition = "opacity 0.8s ease";
+        splash.style.opacity = '0';
         setTimeout(() => {
-            document.getElementById('splash-screen').style.display = 'none';
+            splash.style.display = 'none';
             document.getElementById('main-app').style.display = 'flex';
             scrollToBottom();
-        }, 500);
+        }, 800);
     }, 6000); 
 });
 
@@ -41,7 +42,7 @@ async function sendMsg() {
     const typingDiv = document.createElement('div');
     typingDiv.id = 'typing-indicator';
     typingDiv.className = 'msg-wrapper ai-wrapper';
-    typingDiv.innerHTML = `<img src="${aiImg}" class="avatar"><div style="padding:12px; background:rgba(0,0,0,0.5); border-radius:18px; display:flex; gap:4px;"><div style="width:5px; height:5px; background:#00ff41; border-radius:50%; animation: blink 1.4s infinite;"></div><div style="width:5px; height:5px; background:#00ff41; border-radius:50%; animation: blink 1.4s infinite; animation-delay:0.2s"></div></div>`;
+    typingDiv.innerHTML = `<img src="${aiImg}" class="avatar"><div style="padding:10px 14px; background:rgba(0,0,0,0.5); border-radius:18px; display:flex; gap:4px;"><div style="width:5px; height:5px; background:#00ff41; border-radius:50%; animation: blink 1.4s infinite;"></div><div style="width:5px; height:5px; background:#00ff41; border-radius:50%; animation: blink 1.4s infinite; animation-delay:0.2s"></div></div>`;
     chatBox.appendChild(typingDiv);
     scrollToBottom();
 
@@ -87,4 +88,4 @@ function displayMessage(role, text) {
 
 function scrollToBottom() { const b = document.getElementById('chat-box'); if(b) b.scrollTop = b.scrollHeight; }
 function handleKey(e) { if (e.key === 'Enter') sendMsg(); }
-            
+    
