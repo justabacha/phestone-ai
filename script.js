@@ -2,17 +2,18 @@ const userImg = "https://i.postimg.cc/rpD4fgxR/IMG-5898-2.jpg";
 const aiImg = "https://i.postimg.cc/L5tLzXfJ/IMG-6627-2.jpg";
 let chatHistory = JSON.parse(localStorage.getItem('phesty_memory')) || [];
 
-// --- 1. THE SPLASH SCREEN (Fixed to not ruin layout) ---
+// --- 1. THE SPLASH SCREEN (Restored your branding) ---
 window.addEventListener('load', () => {
     setTimeout(() => {
         const splash = document.getElementById('splash-screen');
+        const mainApp = document.getElementById('main-app');
         if(splash) splash.style.display = 'none';
-        // We don't force 'flex' here anymore so your CSS stays in control
+        if(mainApp) mainApp.style.display = 'block'; // Changed to 'block' to keep layout intact
         scrollToBottom();
     }, 6000); 
 });
 
-// --- 2. BACKGROUND HANDLING ---
+// --- 2. BACKGROUND HANDLING (Fixed Wallpaper & Emoji) ---
 const savedBg = localStorage.getItem('phesty_bg');
 if (savedBg) {
     document.body.style.backgroundImage = `url(${savedBg})`;
@@ -20,21 +21,24 @@ if (savedBg) {
     document.body.style.backgroundSize = "cover";
 }
 
-document.getElementById('bg-upload').addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = (r) => {
-            document.body.style.backgroundImage = `url(${r.target.result})`;
-            document.body.style.backgroundAttachment = "fixed";
-            document.body.style.backgroundSize = "cover";
-            localStorage.setItem('phesty_bg', r.target.result);
-        };
-        reader.readAsDataURL(file);
-    }
-});
+const bgUpload = document.getElementById('bg-upload');
+if (bgUpload) {
+    bgUpload.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (r) => {
+                document.body.style.backgroundImage = `url(${r.target.result})`;
+                document.body.style.backgroundAttachment = "fixed";
+                document.body.style.backgroundSize = "cover";
+                localStorage.setItem('phesty_bg', r.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+}
 
-// --- 3. MESSAGE DISPLAY (Keeps your Style.css classes) ---
+// --- 3. MESSAGE DISPLAY ---
 function displayMessage(role, text) {
     const chatBox = document.getElementById('chat-box');
     if(!chatBox) return;
@@ -42,7 +46,6 @@ function displayMessage(role, text) {
     const wrapper = document.createElement('div');
     wrapper.className = `msg-wrapper ${role === 'user' ? 'user-wrapper' : 'ai-wrapper'}`;
     
-    // Clicking the bubble triggers the Cloned Voice
     const action = role === 'ai' ? `onclick="playPhestyVoice(this.innerText)"` : "";
     
     wrapper.innerHTML = `
@@ -58,8 +61,9 @@ function displayMessage(role, text) {
 // --- 4. SEND MESSAGE LOGIC ---
 async function sendMsg() {
     const input = document.getElementById('userMsg');
+    if (!input) return;
     const text = input.value.trim();
-    if (!text || !input) return;
+    if (!text) return;
 
     displayMessage('user', text);
     input.value = '';
@@ -85,7 +89,6 @@ async function sendMsg() {
         
         const reply = data.candidates[0].content.parts[0].text;
         
-        // Voice Trigger
         playPhestyVoice(reply); 
         
         displayMessage('ai', reply);
@@ -97,7 +100,7 @@ async function sendMsg() {
     }
 }
 
-// --- 5. VOICE ENGINE (Hidden background task) ---
+// --- 5. VOICE ENGINE ---
 async function playPhestyVoice(text) {
     if(!text) return;
     try {
@@ -116,4 +119,3 @@ async function playPhestyVoice(text) {
 
 function scrollToBottom() { const b = document.getElementById('chat-box'); if(b) b.scrollTop = b.scrollHeight; }
 function handleKey(e) { if (e.key === 'Enter') sendMsg(); }
-            
