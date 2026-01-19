@@ -1,6 +1,7 @@
 const userImg = "https://i.postimg.cc/rpD4fgxR/IMG-5898-2.jpg";
 const aiImg = "https://i.postimg.cc/L5tLzXfJ/IMG-6627-2.jpg";
 let chatHistory = JSON.parse(localStorage.getItem('phesty_memory')) || [];
+let currentAudio = null; // Track the current playing voice
 
 window.addEventListener('load', () => {
     setTimeout(() => {
@@ -28,10 +29,11 @@ document.getElementById('bg-upload').addEventListener('change', (e) => {
 function displayMessage(role, text) {
     const chatBox = document.getElementById('chat-box');
     const wrapper = document.createElement('div');
-    // FIXED: Correct classes for Right/Left alignment
     wrapper.className = `msg-wrapper ${role === 'user' ? 'user-wrapper' : 'ai-wrapper'}`;
     
-    const action = role === 'ai' ? `onclick="toggleSpeech(this.innerText)"` : "";
+    // ACTION: Single tap to trigger voice, Double tap to kill it
+    const action = role === 'ai' ? `onclick="toggleSpeech(this, this.innerText)" ondblclick="stopSpeech()"` : "";
+    
     wrapper.innerHTML = `
         <img src="${role==='user' ? userImg : aiImg}" class="avatar">
         <div class="${role}">
@@ -76,18 +78,51 @@ async function sendMsg() {
     }
 }
 
-function toggleSpeech(text) {
-    const synth = window.speechSynthesis;
-    if (synth.speaking) { synth.cancel(); } 
-    else {
-        const utter = new SpeechSynthesisUtterance(text);
-        const voices = synth.getVoices();
-        utter.voice = voices.find(v => v.name.includes('Male') || v.name.includes('UK')) || voices[0];
-        utter.pitch = 0.9; utter.rate = 1.0;
-        synth.speak(utter);
+// NEW MINIMAX VOICE TOGGLE
+async function toggleSpeech(element, text) {
+    // If audio is already playing, stop it before starting new one
+    if (currentAudio) {
+        currentAudio.pause();
+        currentAudio = null;
+    }
+
+    // Visual cue: Dim bubble while fetching your voice
+    element.style.opacity = "0.6";
+
+    try {
+        const response = await fetch('/api/voice', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: text })
+        });
+
+        const data = await response.json();
+        
+        // Check if MiniMax sent back the audio data
+        if (data && data.data && data.data.audio) {
+            const audioSrc = `data:audio/mp3;base64,${data.data.audio}`;
+            currentAudio = new Audio(audioSrc);
+            currentAudio.play();
+        } else {
+            console.error("Voice data missing from response");
+        }
+    } catch (err) {
+        console.error("MiniMax Fetch Error:", err);
+    } finally {
+        element.style.opacity = "1";
+    }
+}
+
+// THE KILL-SWITCH (Double Tap)
+function stopSpeech() {
+    if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+        currentAudio = null;
+        console.log("phesty Ai silenced.");
     }
 }
 
 function scrollToBottom() { const b = document.getElementById('chat-box'); if(b) b.scrollTop = b.scrollHeight; }
 function handleKey(e) { if (e.key === 'Enter') sendMsg(); }
-            
+                
