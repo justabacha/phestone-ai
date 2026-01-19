@@ -13,44 +13,23 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: "speech-02-hd",
         text: text,
-        voice_setting: {
-          voice_id: process.env.MINIMAX_VOICE_ID,
-          speed: 1.0,
-          vol: 1.0,
-          pitch: 0
-        },
-        audio_setting: {
-          sample_rate: 32000,
-          bitrate: 128000,
-          format: "mp3" // Specifically requesting MP3
-        },
-        output_format: "hex" // We receive hex and the browser handles the conversion via the data-uri
+        voice_setting: { voice_id: process.env.MINIMAX_VOICE_ID, speed: 1.0, vol: 1.0 },
+        audio_setting: { sample_rate: 32000, bitrate: 128000, format: "mp3" }
       })
     });
 
     const data = await response.json();
 
-    // Check for MiniMax specific error codes
-    if (data.base_resp && data.base_resp.status_code !== 0) {
-      console.error("MiniMax API Error:", data.base_resp.status_msg);
-      return res.status(500).json({ error: data.base_resp.status_msg });
-    }
-
     if (data.audio_data) {
-      // We send the hex string. In your script.js, we ensure it's treated as the source.
-      res.status(200).json({ 
-        data: { 
-          audio: data.audio_data,
-          format: "hex" 
-        } 
-      });
+      // THE FIX: Convert Hex to Base64 before sending it to the frontend
+      const audioBuffer = Buffer.from(data.audio_data, 'hex');
+      const base64Audio = audioBuffer.toString('base64');
+      
+      res.status(200).json({ audio: base64Audio });
     } else {
-      res.status(500).json({ error: "No audio data received from MiniMax" });
+      res.status(500).json({ error: "No audio data", details: data });
     }
-
   } catch (error) {
-    console.error("Voice Handler Crash:", error);
     res.status(500).json({ error: error.message });
   }
-          }
-        
+    }
