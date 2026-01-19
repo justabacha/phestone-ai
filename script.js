@@ -2,7 +2,7 @@ const userImg = "https://i.postimg.cc/rpD4fgxR/IMG-5898-2.jpg";
 const aiImg = "https://i.postimg.cc/L5tLzXfJ/IMG-6627-2.jpg";
 let chatHistory = JSON.parse(localStorage.getItem('phesty_memory')) || [];
 
-// 1. SPLASH SCREEN (6 Seconds)
+// 1. SPLASH SCREEN
 window.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         const splash = document.getElementById('splash-screen');
@@ -29,7 +29,7 @@ document.getElementById('bg-upload').addEventListener('change', (e) => {
     }
 });
 
-// 3. MESSAGE DISPLAY (Voice Logic Removed)
+// 3. MESSAGE DISPLAY (Voice Logic Removed Completely)
 function displayMessage(role, text) {
     const chatBox = document.getElementById('chat-box');
     if (!chatBox) return;
@@ -74,14 +74,13 @@ async function sendMsg() {
         const data = await res.json();
         if (document.getElementById('typing-indicator')) document.getElementById('typing-indicator').remove();
 
-        // Check if we got a valid response from your chat.js
-        if (data.candidates && data.candidates[0]) {
-            const reply = data.candidates[0].content.parts[0].text;
-            displayMessage('ai', reply);
-            chatHistory.push({ role: 'ai', text: reply });
+        // Standardized check for the response
+        if (data.reply) {
+            displayMessage('ai', data.reply);
+            chatHistory.push({ role: 'ai', text: data.reply });
             localStorage.setItem('phesty_memory', JSON.stringify(chatHistory));
         } else {
-            displayMessage('ai', "Zii, format ya response imechanganyikiwa.");
+            displayMessage('ai', "Zii, response imechanganyikiwa.");
         }
     } catch (e) {
         if (document.getElementById('typing-indicator')) document.getElementById('typing-indicator').remove();
