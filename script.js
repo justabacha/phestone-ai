@@ -2,19 +2,18 @@ const userImg = "https://i.postimg.cc/rpD4fgxR/IMG-5898-2.jpg";
 const aiImg = "https://i.postimg.cc/L5tLzXfJ/IMG-6627-2.jpg";
 let chatHistory = JSON.parse(localStorage.getItem('phesty_memory')) || [];
 
-// 1. THE SPLASH SCREEN (Zero CSS Overrides)
+// 1. THE SPLASH SCREEN (Simple toggle, no style forcing)
 window.addEventListener('load', () => {
     setTimeout(() => {
         const splash = document.getElementById('splash-screen');
         const mainApp = document.getElementById('main-app');
         if (splash) splash.style.display = 'none';
-        // We set it to empty string "" so it uses your original CSS display
-        if (mainApp) mainApp.style.display = ""; 
+        if (mainApp) mainApp.style.display = 'flex'; // This usually aligns your CSS containers correctly
         scrollToBottom();
     }, 6000); 
 });
 
-// 2. BACKGROUND & WALLPAPER EMOJI
+// 2. BACKGROUND (Wallpaper only)
 const savedBg = localStorage.getItem('phesty_bg');
 if (savedBg) document.body.style.backgroundImage = `url(${savedBg})`;
 
@@ -30,7 +29,7 @@ document.getElementById('bg-upload')?.addEventListener('change', (e) => {
     }
 });
 
-// 3. MESSAGE DISPLAY
+// 3. MESSAGE DISPLAY (Strictly HTML insertion)
 function displayMessage(role, text) {
     const chatBox = document.getElementById('chat-box');
     if(!chatBox) return;
@@ -42,7 +41,7 @@ function displayMessage(role, text) {
     
     wrapper.innerHTML = `
         <img src="${role === 'user' ? userImg : aiImg}" class="avatar">
-        <div class="${role === 'user' ? 'user' : 'ai'}">
+        <div class="${role}">
             <div class="bubble" ${action}>${text}</div>
         </div>
     `;
@@ -109,4 +108,4 @@ async function playPhestyVoice(text) {
 
 function scrollToBottom() { const b = document.getElementById('chat-box'); if(b) b.scrollTop = b.scrollHeight; }
 function handleKey(e) { if (e.key === 'Enter') sendMsg(); }
-                
+        
