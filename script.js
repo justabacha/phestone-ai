@@ -2,43 +2,33 @@ const userImg = "https://i.postimg.cc/rpD4fgxR/IMG-5898-2.jpg";
 const aiImg = "https://i.postimg.cc/L5tLzXfJ/IMG-6627-2.jpg";
 let chatHistory = JSON.parse(localStorage.getItem('phesty_memory')) || [];
 
-// --- 1. THE SPLASH SCREEN (Restored your branding) ---
+// 1. THE SPLASH SCREEN (Zero layout interference)
 window.addEventListener('load', () => {
     setTimeout(() => {
         const splash = document.getElementById('splash-screen');
-        const mainApp = document.getElementById('main-app');
         if(splash) splash.style.display = 'none';
-        if(mainApp) mainApp.style.display = 'block'; // Changed to 'block' to keep layout intact
+        // We don't touch 'main-app' display at all—let CSS handle it
         scrollToBottom();
     }, 6000); 
 });
 
-// --- 2. BACKGROUND HANDLING (Fixed Wallpaper & Emoji) ---
+// 2. BACKGROUND (Wallpaper only)
 const savedBg = localStorage.getItem('phesty_bg');
-if (savedBg) {
-    document.body.style.backgroundImage = `url(${savedBg})`;
-    document.body.style.backgroundAttachment = "fixed";
-    document.body.style.backgroundSize = "cover";
-}
+if (savedBg) document.body.style.backgroundImage = `url(${savedBg})`;
 
-const bgUpload = document.getElementById('bg-upload');
-if (bgUpload) {
-    bgUpload.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (r) => {
-                document.body.style.backgroundImage = `url(${r.target.result})`;
-                document.body.style.backgroundAttachment = "fixed";
-                document.body.style.backgroundSize = "cover";
-                localStorage.setItem('phesty_bg', r.target.result);
-            };
-            reader.readAsDataURL(file);
-        }
-    });
-}
+document.getElementById('bg-upload')?.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (r) => {
+            document.body.style.backgroundImage = `url(${r.target.result})`;
+            localStorage.setItem('phesty_bg', r.target.result);
+        };
+        reader.readAsDataURL(file);
+    }
+});
 
-// --- 3. MESSAGE DISPLAY ---
+// 3. MESSAGE DISPLAY (Strictly using your existing CSS classes)
 function displayMessage(role, text) {
     const chatBox = document.getElementById('chat-box');
     if(!chatBox) return;
@@ -46,6 +36,7 @@ function displayMessage(role, text) {
     const wrapper = document.createElement('div');
     wrapper.className = `msg-wrapper ${role === 'user' ? 'user-wrapper' : 'ai-wrapper'}`;
     
+    // Voice trigger on click
     const action = role === 'ai' ? `onclick="playPhestyVoice(this.innerText)"` : "";
     
     wrapper.innerHTML = `
@@ -58,7 +49,7 @@ function displayMessage(role, text) {
     scrollToBottom();
 }
 
-// --- 4. SEND MESSAGE LOGIC ---
+// 4. SEND MESSAGE LOGIC
 async function sendMsg() {
     const input = document.getElementById('userMsg');
     if (!input) return;
@@ -85,22 +76,23 @@ async function sendMsg() {
         });
         const data = await res.json();
         
-        if (document.getElementById('typing-indicator')) document.getElementById('typing-indicator').remove();
+        document.getElementById('typing-indicator')?.remove();
         
         const reply = data.candidates[0].content.parts[0].text;
         
+        // Cloned Voice Trigger
         playPhestyVoice(reply); 
         
         displayMessage('ai', reply);
         chatHistory.push({ role: 'ai', text: reply });
         localStorage.setItem('phesty_memory', JSON.stringify(chatHistory));
     } catch (e) {
-        if (document.getElementById('typing-indicator')) document.getElementById('typing-indicator').remove();
+        document.getElementById('typing-indicator')?.remove();
         displayMessage('ai', "Zii, network imekataa.");
     }
 }
 
-// --- 5. VOICE ENGINE ---
+// 5. VOICE ENGINE (Runs in background)
 async function playPhestyVoice(text) {
     if(!text) return;
     try {
@@ -119,3 +111,4 @@ async function playPhestyVoice(text) {
 
 function scrollToBottom() { const b = document.getElementById('chat-box'); if(b) b.scrollTop = b.scrollHeight; }
 function handleKey(e) { if (e.key === 'Enter') sendMsg(); }
+                                                       
