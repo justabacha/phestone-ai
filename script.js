@@ -2,20 +2,32 @@ const userImg = "https://i.postimg.cc/rpD4fgxR/IMG-5898-2.jpg";
 const aiImg = "https://i.postimg.cc/L5tLzXfJ/IMG-6627-2.jpg";
 let chatHistory = JSON.parse(localStorage.getItem('phesty_memory')) || [];
 
-// 1. THE SPLASH SCREEN (Simple toggle, no style forcing)
+// 1. THE SPLASH SCREEN FIX
 window.addEventListener('load', () => {
+    // Force splash image to not be "Huge" if CSS fails
+    const splashImg = document.querySelector('.splash-logo');
+    if(splashImg) {
+        splashImg.style.width = "150px"; 
+        splashImg.style.height = "150px";
+        splashImg.style.borderRadius = "50%";
+    }
+
     setTimeout(() => {
         const splash = document.getElementById('splash-screen');
         const mainApp = document.getElementById('main-app');
         if (splash) splash.style.display = 'none';
-        if (mainApp) mainApp.style.display = 'flex'; // This usually aligns your CSS containers correctly
+        if (mainApp) mainApp.style.setProperty('display', 'flex', 'important');
         scrollToBottom();
     }, 6000); 
 });
 
-// 2. BACKGROUND (Wallpaper only)
+// 2. BACKGROUND 
 const savedBg = localStorage.getItem('phesty_bg');
-if (savedBg) document.body.style.backgroundImage = `url(${savedBg})`;
+if (savedBg) {
+    document.body.style.backgroundImage = `url(${savedBg})`;
+    document.body.style.backgroundSize = "cover";
+    document.body.style.backgroundAttachment = "fixed";
+}
 
 document.getElementById('bg-upload')?.addEventListener('change', (e) => {
     const file = e.target.files[0];
@@ -29,7 +41,7 @@ document.getElementById('bg-upload')?.addEventListener('change', (e) => {
     }
 });
 
-// 3. MESSAGE DISPLAY (Strictly HTML insertion)
+// 3. MESSAGE DISPLAY (Using your AI/User tags)
 function displayMessage(role, text) {
     const chatBox = document.getElementById('chat-box');
     if(!chatBox) return;
@@ -49,7 +61,7 @@ function displayMessage(role, text) {
     scrollToBottom();
 }
 
-// 4. SEND MESSAGE LOGIC
+// 4. SEND MESSAGE (Triggering Voice)
 async function sendMsg() {
     const input = document.getElementById('userMsg');
     if (!input) return;
@@ -108,4 +120,3 @@ async function playPhestyVoice(text) {
 
 function scrollToBottom() { const b = document.getElementById('chat-box'); if(b) b.scrollTop = b.scrollHeight; }
 function handleKey(e) { if (e.key === 'Enter') sendMsg(); }
-        
