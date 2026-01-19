@@ -100,13 +100,16 @@ async function toggleSpeech(element, text) {
             body: JSON.stringify({ text: text })
         });
 
-        const result = await response.json();
+            const result = await response.json();
         
         // Backend now sends result.audio as a clean base64 string
         if (result.audio) {
             currentAudio.src = `data:audio/mp3;base64,${result.audio}`;
-            currentAudio.play().catch(e => console.log("Unlock audio by tapping again."));
+            currentAudio.play().catch(e => {
+                console.log("Unlock audio by tapping again.");
+            });
         }
+        
     } catch (err) {
         console.error("Voice Error:", err);
     } finally {
