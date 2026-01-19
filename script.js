@@ -28,10 +28,10 @@ document.getElementById('bg-upload').addEventListener('change', (e) => {
 function displayMessage(role, text) {
     const chatBox = document.getElementById('chat-box');
     const wrapper = document.createElement('div');
-    // FIXED: Correct classes for Right/Left alignment
     wrapper.className = `msg-wrapper ${role === 'user' ? 'user-wrapper' : 'ai-wrapper'}`;
     
-    const action = role === 'ai' ? `onclick="toggleSpeech(this.innerText)"` : "";
+    // Updated: Now clicking a bubble uses your cloned voice instead of the robot
+    const action = role === 'ai' ? `onclick="playPhestyVoice(this.innerText)"` : "";
     wrapper.innerHTML = `
         <img src="${role==='user' ? userImg : aiImg}" class="avatar">
         <div class="${role}">
@@ -66,7 +66,12 @@ async function sendMsg() {
         });
         const data = await res.json();
         if (document.getElementById('typing-indicator')) document.getElementById('typing-indicator').remove();
+        
         const reply = data.candidates[0].content.parts[0].text;
+        
+        // --- TRIGGER CLONED VOICE ---
+        playPhestyVoice(reply); 
+        
         displayMessage('ai', reply);
         chatHistory.push({ role: 'ai', text: reply });
         localStorage.setItem('phesty_memory', JSON.stringify(chatHistory));
@@ -76,16 +81,9 @@ async function sendMsg() {
     }
 }
 
+// Updated to use the new Voice Engine
 function toggleSpeech(text) {
-    const synth = window.speechSynthesis;
-    if (synth.speaking) { synth.cancel(); } 
-    else {
-        const utter = new SpeechSynthesisUtterance(text);
-        const voices = synth.getVoices();
-        utter.voice = voices.find(v => v.name.includes('Male') || v.name.includes('UK')) || voices[0];
-        utter.pitch = 0.9; utter.rate = 1.0;
-        synth.speak(utter);
-    }
+    playPhestyVoice(text);
 }
 
 function scrollToBottom() { const b = document.getElementById('chat-box'); if(b) b.scrollTop = b.scrollHeight; }
@@ -93,6 +91,7 @@ function handleKey(e) { if (e.key === 'Enter') sendMsg(); }
                 
 // --- PHESTY VOICE ENGINE ---
 async function playPhestyVoice(text) {
+    if (!text) return;
     try {
         const response = await fetch('/api/voice', {
             method: 'POST',
@@ -107,4 +106,4 @@ async function playPhestyVoice(text) {
     } catch (err) {
         console.error("Voice Box Error:", err);
     }
-}
+                }
