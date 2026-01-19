@@ -29,12 +29,11 @@
         <div id="chat-box" class="chat-box"></div>
 
         <div class="input-area-wrapper">
-            <div class="input-card">
-                <button class="icon-btn">🎭</button>
-                <input type="text" id="userMsg" placeholder="Rada?..." onkeypress="handleKey(event)">
-                <button id="micBtn" class="icon-btn">🎐</button>
-                <button onclick="sendMsg()" id="sendBtn" class="send-btn">📥</button>
-            </div>
+        <div class="input-area">
+    <span style="font-size: 20px; margin-right: 8px;">🎭</span>
+    <input type="text" id="userMsg" placeholder="Rada?..." onkeyup="handleKey(event)">
+    <span onclick="sendMsg()" style="font-size: 20px; margin-left: 8px; cursor: pointer;">📥</span>
+        </div>
         </div>
     </div>
     <script src="script.js"></script>
