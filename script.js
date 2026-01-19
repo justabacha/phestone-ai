@@ -81,12 +81,13 @@ async function sendMsg() {
         displayMessage('ai', reply);
         chatHistory.push({ role: 'ai', text: reply });
         localStorage.setItem('phesty_memory', JSON.stringify(chatHistory));
+    
     } catch (e) {
         if (document.getElementById('typing-indicator')) document.getElementById('typing-indicator').remove();
-        displayMessage('ai', "Zii, network imekataa.");
+        console.error("Full Error Details:", e); // This prints the REAL error in your browser console
+        displayMessage('ai', "Zii, network imekataa. Error: " + e.message);
     }
-}
-
+    
 // 5. VOICE LOGIC (Final Version)
 async function toggleSpeech(element, text) {
     if (!currentAudio) { currentAudio = new Audio(); }
