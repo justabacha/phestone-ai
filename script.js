@@ -1,16 +1,20 @@
 const userImg = "https://i.postimg.cc/rpD4fgxR/IMG-5898-2.jpg";
 const aiImg = "https://i.postimg.cc/L5tLzXfJ/IMG-6627-2.jpg";
 let chatHistory = JSON.parse(localStorage.getItem('phesty_memory')) || [];
-let currentAudio = null; // Track the playing voice
+let currentAudio = null; 
 
-window.addEventListener('load', () => {
+// 1. SPLASH SCREEN LOGIC (Standalone - Guaranteed to close)
+window.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
-        document.getElementById('splash-screen').style.display = 'none';
-        document.getElementById('main-app').style.display = 'flex';
+        const splash = document.getElementById('splash-screen');
+        const main = document.getElementById('main-app');
+        if(splash) splash.style.display = 'none';
+        if(main) main.style.display = 'flex';
         scrollToBottom();
     }, 6000); 
 });
 
+// 2. BACKGROUND PERSISTENCE
 const savedBg = localStorage.getItem('phesty_bg');
 if (savedBg) document.body.style.backgroundImage = `url(${savedBg})`;
 
@@ -26,12 +30,14 @@ document.getElementById('bg-upload').addEventListener('change', (e) => {
     }
 });
 
+// 3. MESSAGE DISPLAY
 function displayMessage(role, text) {
     const chatBox = document.getElementById('chat-box');
+    if (!chatBox) return;
     const wrapper = document.createElement('div');
     wrapper.className = `msg-wrapper ${role === 'user' ? 'user-wrapper' : 'ai-wrapper'}`;
     
-    // Tap to play voice, Double tap to stop
+    // Tap to play, Double tap to stop
     const action = role === 'ai' ? `onclick="toggleSpeech(this, this.innerText)" ondblclick="stopSpeech()"` : "";
     
     wrapper.innerHTML = `
@@ -44,10 +50,12 @@ function displayMessage(role, text) {
     scrollToBottom();
 }
 
+// 4. CHAT LOGIC
 async function sendMsg() {
     const input = document.getElementById('userMsg');
     const text = input.value.trim();
     if (!text) return;
+
     displayMessage('user', text);
     input.value = '';
     chatHistory.push({ role: 'user', text: text });
@@ -68,6 +76,7 @@ async function sendMsg() {
         });
         const data = await res.json();
         if (document.getElementById('typing-indicator')) document.getElementById('typing-indicator').remove();
+        
         const reply = data.candidates[0].content.parts[0].text;
         displayMessage('ai', reply);
         chatHistory.push({ role: 'ai', text: reply });
@@ -78,10 +87,9 @@ async function sendMsg() {
     }
 }
 
-// UPDATED VOICE LOGIC WITH HEX-TO-BASE64 CONVERSION
+// 5. VOICE LOGIC (Final Version)
 async function toggleSpeech(element, text) {
     if (!currentAudio) { currentAudio = new Audio(); }
-    
     currentAudio.pause();
     element.style.opacity = "0.5"; 
 
@@ -94,18 +102,13 @@ async function toggleSpeech(element, text) {
 
         const result = await response.json();
         
-        if (result.data && result.data.audio) {
-            // CONVERT HEX FROM MINIMAX TO BASE64
-            const hexString = result.data.audio;
-            const base64String = btoa(hexString.match(/\w{2}/g).map(a => String.fromCharCode(parseInt(a, 16))).join(""));
-            
-            currentAudio.src = `data:audio/mp3;base64,${base64String}`;
-            currentAudio.play().catch(e => {
-                console.error("Playback blocked. Tap again.");
-            });
+        // Backend now sends result.audio as a clean base64 string
+        if (result.audio) {
+            currentAudio.src = `data:audio/mp3;base64,${result.audio}`;
+            currentAudio.play().catch(e => console.log("Unlock audio by tapping again."));
         }
     } catch (err) {
-        console.error("MiniMax Error:", err);
+        console.error("Voice Error:", err);
     } finally {
         element.style.opacity = "1";
     }
@@ -115,7 +118,6 @@ function stopSpeech() {
     if (currentAudio) {
         currentAudio.pause();
         currentAudio.currentTime = 0;
-        console.log("phesty Ai stopped.");
     }
 }
 
