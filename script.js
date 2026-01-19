@@ -91,3 +91,20 @@ function toggleSpeech(text) {
 function scrollToBottom() { const b = document.getElementById('chat-box'); if(b) b.scrollTop = b.scrollHeight; }
 function handleKey(e) { if (e.key === 'Enter') sendMsg(); }
                 
+// --- PHESTY VOICE ENGINE ---
+async function playPhestyVoice(text) {
+    try {
+        const response = await fetch('/api/voice', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: text })
+        });
+        const data = await response.json();
+        if (data.audio) {
+            const audio = new Audio("data:audio/mp3;base64," + data.audio);
+            audio.play();
+        }
+    } catch (err) {
+        console.error("Voice Box Error:", err);
+    }
+}
