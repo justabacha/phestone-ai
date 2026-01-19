@@ -1,53 +1,34 @@
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: "Method not allowed" });
 
-  const { text } = req.body;
-  const GROUP_ID = process.env.MINIMAX_GROUP_ID;
-  const API_KEY = process.env.MINIMAX_API_KEY;
-  const VOICE_ID = process.env.MINIMAX_VOICE_ID;
-
   try {
-    const response = await fetch(`https://api.minimaxi.chat/v1/t2a_v2?GroupId=${GROUP_ID}`, {
-      method: 'POST',
+    const { message, history } = req.body;
+
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${API_KEY}`,
-        'Content-Type': 'application/json'
+        "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "speech-01-turbo", // Try turbo first, it's more stable for testing
-        text: text,
-        stream: false,
-        voice_setting: {
-          voice_id: VOICE_ID,
-          speed: 1.0,
-          vol: 1.0
-        },
-        audio_setting: {
-          sample_rate: 32000,
-          bitrate: 128000,
-          format: "mp3"
-        }
+        model: "llama-3.3-70b-versatile",
+        messages: [
+          { role: "system", content: "You are phesty Ai, a chill assistant." },
+          ...history.map(h => ({ role: h.role === 'ai' ? 'assistant' : 'user', content: h.text })),
+          { role: "user", content: message }
+        ]
       })
     });
 
-    const result = await response.json();
-
-    // LOGGING: Check your server logs for this!
-    console.log("MiniMax Response Status:", result.base_resp?.status_code);
-
-    if (result.audio_data) {
-      // Direct conversion from Hex to Base64
-      const base64Audio = Buffer.from(result.audio_data, 'hex').toString('base64');
-      return res.status(200).json({ audio: base64Audio });
+    const data = await response.json();
+    
+    if (data.choices && data.choices[0]) {
+      // Sending a clean 'reply' field for the frontend
+      res.status(200).json({ reply: data.choices[0].message.content });
     } else {
-      return res.status(500).json({ 
-        error: "MiniMax failed to generate audio", 
-        details: result.base_resp?.status_msg || "Unknown error" 
-      });
+      res.status(500).json({ error: "Groq error" });
     }
   } catch (error) {
-    console.error("Critical Voice Error:", error);
-    return res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
-            }
-        
+}
