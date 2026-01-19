@@ -74,6 +74,12 @@ async function sendMsg() {
         const data = await res.json();
         if (document.getElementById('typing-indicator')) document.getElementById('typing-indicator').remove();
 
+        // CHECK FOR RATE LIMIT (429 Error)
+        if (res.status === 429) { 
+            displayMessage('ai', "Have hit the limits dwag,just gimme a sec.");
+            return;
+        }
+
         // Standardized check for the response
         if (data.reply) {
             displayMessage('ai', data.reply);
@@ -90,3 +96,4 @@ async function sendMsg() {
 
 function scrollToBottom() { const b = document.getElementById('chat-box'); if(b) b.scrollTop = b.scrollHeight; }
 function handleKey(e) { if (e.key === 'Enter') sendMsg(); }
+                                                      
