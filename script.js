@@ -2,16 +2,23 @@ const userImg = "https://i.postimg.cc/rpD4fgxR/IMG-5898-2.jpg";
 const aiImg = "https://i.postimg.cc/L5tLzXfJ/IMG-6627-2.jpg";
 let chatHistory = JSON.parse(localStorage.getItem('phesty_memory')) || [];
 
+// --- 1. THE SPLASH SCREEN (Fixed to not ruin layout) ---
 window.addEventListener('load', () => {
     setTimeout(() => {
-        document.getElementById('splash-screen').style.display = 'none';
-        document.getElementById('main-app').style.display = 'flex';
+        const splash = document.getElementById('splash-screen');
+        if(splash) splash.style.display = 'none';
+        // We don't force 'flex' here anymore so your CSS stays in control
         scrollToBottom();
     }, 6000); 
 });
 
+// --- 2. BACKGROUND HANDLING ---
 const savedBg = localStorage.getItem('phesty_bg');
-if (savedBg) document.body.style.backgroundImage = `url(${savedBg})`;
+if (savedBg) {
+    document.body.style.backgroundImage = `url(${savedBg})`;
+    document.body.style.backgroundAttachment = "fixed";
+    document.body.style.backgroundSize = "cover";
+}
 
 document.getElementById('bg-upload').addEventListener('change', (e) => {
     const file = e.target.files[0];
@@ -19,19 +26,25 @@ document.getElementById('bg-upload').addEventListener('change', (e) => {
         const reader = new FileReader();
         reader.onload = (r) => {
             document.body.style.backgroundImage = `url(${r.target.result})`;
+            document.body.style.backgroundAttachment = "fixed";
+            document.body.style.backgroundSize = "cover";
             localStorage.setItem('phesty_bg', r.target.result);
         };
         reader.readAsDataURL(file);
     }
 });
 
+// --- 3. MESSAGE DISPLAY (Keeps your Style.css classes) ---
 function displayMessage(role, text) {
     const chatBox = document.getElementById('chat-box');
+    if(!chatBox) return;
+    
     const wrapper = document.createElement('div');
     wrapper.className = `msg-wrapper ${role === 'user' ? 'user-wrapper' : 'ai-wrapper'}`;
     
-    // Updated: Now clicking a bubble uses your cloned voice instead of the robot
+    // Clicking the bubble triggers the Cloned Voice
     const action = role === 'ai' ? `onclick="playPhestyVoice(this.innerText)"` : "";
+    
     wrapper.innerHTML = `
         <img src="${role==='user' ? userImg : aiImg}" class="avatar">
         <div class="${role}">
@@ -42,10 +55,12 @@ function displayMessage(role, text) {
     scrollToBottom();
 }
 
+// --- 4. SEND MESSAGE LOGIC ---
 async function sendMsg() {
     const input = document.getElementById('userMsg');
     const text = input.value.trim();
-    if (!text) return;
+    if (!text || !input) return;
+
     displayMessage('user', text);
     input.value = '';
     chatHistory.push({ role: 'user', text: text });
@@ -54,7 +69,7 @@ async function sendMsg() {
     const typingDiv = document.createElement('div');
     typingDiv.id = 'typing-indicator';
     typingDiv.className = 'msg-wrapper ai-wrapper';
-    typingDiv.innerHTML = `<img src="${aiImg}" class="avatar"><div style="padding:12px; background:rgba(0,0,0,0.5); border-radius:18px; display:flex; gap:4px;"><div style="width:5px; height:5px; background:#00ff41; border-radius:50%; animation: blink 1.4s infinite;"></div><div style="width:5px; height:5px; background:#00ff41; border-radius:50%; animation: blink 1.4s infinite; animation-delay:0.2s"></div></div>`;
+    typingDiv.innerHTML = `<img src="${aiImg}" class="avatar"><div class="ai"><div class="bubble">...</div></div>`;
     chatBox.appendChild(typingDiv);
     scrollToBottom();
 
@@ -65,11 +80,12 @@ async function sendMsg() {
             body: JSON.stringify({ message: text, history: chatHistory })
         });
         const data = await res.json();
+        
         if (document.getElementById('typing-indicator')) document.getElementById('typing-indicator').remove();
         
         const reply = data.candidates[0].content.parts[0].text;
         
-        // --- TRIGGER CLONED VOICE ---
+        // Voice Trigger
         playPhestyVoice(reply); 
         
         displayMessage('ai', reply);
@@ -81,17 +97,9 @@ async function sendMsg() {
     }
 }
 
-// Updated to use the new Voice Engine
-function toggleSpeech(text) {
-    playPhestyVoice(text);
-}
-
-function scrollToBottom() { const b = document.getElementById('chat-box'); if(b) b.scrollTop = b.scrollHeight; }
-function handleKey(e) { if (e.key === 'Enter') sendMsg(); }
-                
-// --- PHESTY VOICE ENGINE ---
+// --- 5. VOICE ENGINE (Hidden background task) ---
 async function playPhestyVoice(text) {
-    if (!text) return;
+    if(!text) return;
     try {
         const response = await fetch('/api/voice', {
             method: 'POST',
@@ -103,7 +111,9 @@ async function playPhestyVoice(text) {
             const audio = new Audio("data:audio/mp3;base64," + data.audio);
             audio.play();
         }
-    } catch (err) {
-        console.error("Voice Box Error:", err);
-    }
-                }
+    } catch (err) { console.error("Voice Error", err); }
+}
+
+function scrollToBottom() { const b = document.getElementById('chat-box'); if(b) b.scrollTop = b.scrollHeight; }
+function handleKey(e) { if (e.key === 'Enter') sendMsg(); }
+            
