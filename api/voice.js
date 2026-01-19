@@ -11,7 +11,7 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: "speech-02-hd",
+        model: "speech-01-turbo", 
         text: text,
         voice_setting: { voice_id: process.env.MINIMAX_VOICE_ID, speed: 1.0, vol: 1.0 },
         audio_setting: { sample_rate: 32000, bitrate: 128000, format: "mp3" }
@@ -21,10 +21,8 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     if (data.audio_data) {
-      // THE FIX: Convert Hex to Base64 before sending it to the frontend
-      const audioBuffer = Buffer.from(data.audio_data, 'hex');
-      const base64Audio = audioBuffer.toString('base64');
-      
+      // THE KEY: Convert Hex to Base64 so 'result.audio' works in your script
+      const base64Audio = Buffer.from(data.audio_data, 'hex').toString('base64');
       res.status(200).json({ audio: base64Audio });
     } else {
       res.status(500).json({ error: "No audio data", details: data });
@@ -32,4 +30,4 @@ export default async function handler(req, res) {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-    }
+      }
