@@ -3,7 +3,6 @@ const aiImg = "https://i.postimg.cc/L5tLzXfJ/IMG-6627-2.jpg";
 let chatHistory = JSON.parse(localStorage.getItem('phesty_memory')) || [];
 let currentAudio = null; 
 
-// 1. SPLASH SCREEN
 window.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         const splash = document.getElementById('splash-screen');
@@ -14,7 +13,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }, 6000); 
 });
 
-// 2. BACKGROUND
 const savedBg = localStorage.getItem('phesty_bg');
 if (savedBg) document.body.style.backgroundImage = `url(${savedBg})`;
 
@@ -30,26 +28,17 @@ document.getElementById('bg-upload').addEventListener('change', (e) => {
     }
 });
 
-// 3. DISPLAY MESSAGE
 function displayMessage(role, text) {
     const chatBox = document.getElementById('chat-box');
     if (!chatBox) return;
     const wrapper = document.createElement('div');
     wrapper.className = `msg-wrapper ${role === 'user' ? 'user-wrapper' : 'ai-wrapper'}`;
-    
     const action = role === 'ai' ? `onclick="toggleSpeech(this, this.innerText)" ondblclick="stopSpeech()"` : "";
-    
-    wrapper.innerHTML = `
-        <img src="${role==='user' ? userImg : aiImg}" class="avatar">
-        <div class="${role}">
-            <div class="bubble" ${action}>${text}</div>
-        </div>
-    `;
+    wrapper.innerHTML = `<img src="${role==='user' ? userImg : aiImg}" class="avatar"><div class="${role}"><div class="bubble" ${action}>${text}</div></div>`;
     chatBox.appendChild(wrapper);
     scrollToBottom();
 }
 
-// 4. CHAT LOGIC (Fixed: Text won't crash if voice fails)
 async function sendMsg() {
     const input = document.getElementById('userMsg');
     const text = input.value.trim();
@@ -68,13 +57,20 @@ async function sendMsg() {
     scrollToBottom();
 
     try {
+        // We added a 15-second timeout to stop the infinite "typing..."
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), 15000);
+
         const res = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: text, history: chatHistory.slice(-6) })
+            body: JSON.stringify({ message: text, history: chatHistory.slice(-6) }),
+            signal: controller.signal
         });
         
+        clearTimeout(id);
         const data = await res.json();
+        
         if (document.getElementById('typing-indicator')) document.getElementById('typing-indicator').remove();
 
         if (data.candidates && data.candidates[0]) {
@@ -82,44 +78,36 @@ async function sendMsg() {
             displayMessage('ai', reply);
             chatHistory.push({ role: 'ai', text: reply });
             localStorage.setItem('phesty_memory', JSON.stringify(chatHistory));
+        } else {
+            displayMessage('ai', "Zii, response format mbaya.");
         }
     } catch (e) {
         if (document.getElementById('typing-indicator')) document.getElementById('typing-indicator').remove();
-        displayMessage('ai', "Zii, network imekataa.");
-        console.error("Chat Error:", e);
+        displayMessage('ai', "Zii, network imekataa. Check logs.");
+        console.error("Critical Chat Error:", e);
     }
 }
 
-// 5. VOICE LOGIC (Independent)
 async function toggleSpeech(element, text) {
     if (!currentAudio) { currentAudio = new Audio(); }
     currentAudio.pause();
     element.style.opacity = "0.5"; 
-
     try {
         const response = await fetch('/api/voice', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text: text })
         });
-
         const result = await response.json();
-        
         if (result.audio) {
             currentAudio.src = `data:audio/mp3;base64,${result.audio}`;
-            currentAudio.play().catch(e => console.log("Tap to unlock audio."));
-        } else {
-            // If voice fails, we just alert it but the chat stays visible
-            console.error("Voice failed:", result.error);
+            currentAudio.play().catch(e => console.log("Unlock audio."));
         }
-    } catch (err) {
-        console.error("Voice Error:", err);
-    } finally {
-        element.style.opacity = "1";
-    }
+    } catch (err) { console.error("Voice Error:", err); }
+    finally { element.style.opacity = "1"; }
 }
 
 function stopSpeech() { if (currentAudio) { currentAudio.pause(); currentAudio.currentTime = 0; } }
 function scrollToBottom() { const b = document.getElementById('chat-box'); if(b) b.scrollTop = b.scrollHeight; }
 function handleKey(e) { if (e.key === 'Enter') sendMsg(); }
-            
+    
