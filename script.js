@@ -78,13 +78,12 @@ async function sendMsg() {
     }
 }
 
-// UPDATED VOICE LOGIC
+// UPDATED VOICE LOGIC WITH HEX-TO-BASE64 CONVERSION
 async function toggleSpeech(element, text) {
-    // 1. Prime the audio object immediately (Mobile unlock)
     if (!currentAudio) { currentAudio = new Audio(); }
     
     currentAudio.pause();
-    element.style.opacity = "0.5"; // Visual feedback
+    element.style.opacity = "0.5"; 
 
     try {
         const response = await fetch('/api/voice', {
@@ -96,8 +95,11 @@ async function toggleSpeech(element, text) {
         const result = await response.json();
         
         if (result.data && result.data.audio) {
-            // Set source and play
-            currentAudio.src = `data:audio/mp3;base64,${result.data.audio}`;
+            // CONVERT HEX FROM MINIMAX TO BASE64
+            const hexString = result.data.audio;
+            const base64String = btoa(hexString.match(/\w{2}/g).map(a => String.fromCharCode(parseInt(a, 16))).join(""));
+            
+            currentAudio.src = `data:audio/mp3;base64,${base64String}`;
             currentAudio.play().catch(e => {
                 console.error("Playback blocked. Tap again.");
             });
@@ -119,4 +121,4 @@ function stopSpeech() {
 
 function scrollToBottom() { const b = document.getElementById('chat-box'); if(b) b.scrollTop = b.scrollHeight; }
 function handleKey(e) { if (e.key === 'Enter') sendMsg(); }
-            
+        
