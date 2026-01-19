@@ -2,53 +2,42 @@ const userImg = "https://i.postimg.cc/rpD4fgxR/IMG-5898-2.jpg";
 const aiImg = "https://i.postimg.cc/L5tLzXfJ/IMG-6627-2.jpg";
 let chatHistory = JSON.parse(localStorage.getItem('phesty_memory')) || [];
 
-// 1. THE SPLASH SCREEN (Restores your branding & black screen)
+// 1. THE SPLASH SCREEN (Zero CSS Overrides)
 window.addEventListener('load', () => {
     setTimeout(() => {
         const splash = document.getElementById('splash-screen');
         const mainApp = document.getElementById('main-app');
         if (splash) splash.style.display = 'none';
-        if (mainApp) mainApp.style.display = 'flex'; // Uses flex to keep your input-area-wrapper at bottom
+        // We set it to empty string "" so it uses your original CSS display
+        if (mainApp) mainApp.style.display = ""; 
         scrollToBottom();
     }, 6000); 
 });
 
-// 2. BACKGROUND HANDLING (Keeps wallpaper emoji working)
+// 2. BACKGROUND & WALLPAPER EMOJI
 const savedBg = localStorage.getItem('phesty_bg');
-if (savedBg) {
-    document.body.style.backgroundImage = `url(${savedBg})`;
-    document.body.style.backgroundSize = "cover";
-    document.body.style.backgroundAttachment = "fixed";
-}
+if (savedBg) document.body.style.backgroundImage = `url(${savedBg})`;
 
-const bgInput = document.getElementById('bg-upload');
-if (bgInput) {
-    bgInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (r) => {
-                const result = r.target.result;
-                document.body.style.backgroundImage = `url(${result})`;
-                document.body.style.backgroundSize = "cover";
-                document.body.style.backgroundAttachment = "fixed";
-                localStorage.setItem('phesty_bg', result);
-            };
-            reader.readAsDataURL(file);
-        }
-    });
-}
+document.getElementById('bg-upload')?.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (r) => {
+            document.body.style.backgroundImage = `url(${r.target.result})`;
+            localStorage.setItem('phesty_bg', r.target.result);
+        };
+        reader.readAsDataURL(file);
+    }
+});
 
-// 3. MESSAGE DISPLAY (Keeps your avatar and bubble sizes perfect)
+// 3. MESSAGE DISPLAY
 function displayMessage(role, text) {
     const chatBox = document.getElementById('chat-box');
     if(!chatBox) return;
     
     const wrapper = document.createElement('div');
-    // Using your exact classes for Right/Left alignment
     wrapper.className = `msg-wrapper ${role === 'user' ? 'user-wrapper' : 'ai-wrapper'}`;
     
-    // Voice trigger: Clicking the AI bubble plays your voice
     const action = role === 'ai' ? `onclick="playPhestyVoice(this.innerText)"` : "";
     
     wrapper.innerHTML = `
@@ -61,7 +50,7 @@ function displayMessage(role, text) {
     scrollToBottom();
 }
 
-// 4. SEND MESSAGE LOGIC (Brain + Voice Connection)
+// 4. SEND MESSAGE LOGIC
 async function sendMsg() {
     const input = document.getElementById('userMsg');
     if (!input) return;
@@ -72,7 +61,6 @@ async function sendMsg() {
     input.value = '';
     chatHistory.push({ role: 'user', text: text });
     
-    // Typing Indicator
     const chatBox = document.getElementById('chat-box');
     const typingDiv = document.createElement('div');
     typingDiv.id = 'typing-indicator';
@@ -88,24 +76,21 @@ async function sendMsg() {
             body: JSON.stringify({ message: text, history: chatHistory })
         });
         const data = await res.json();
-        
-        if (document.getElementById('typing-indicator')) document.getElementById('typing-indicator').remove();
+        document.getElementById('typing-indicator')?.remove();
         
         const reply = data.candidates[0].content.parts[0].text;
-        
-        // --- TRIGGER CLONED VOICE ---
         playPhestyVoice(reply); 
-        
         displayMessage('ai', reply);
+        
         chatHistory.push({ role: 'ai', text: reply });
         localStorage.setItem('phesty_memory', JSON.stringify(chatHistory));
     } catch (e) {
-        if (document.getElementById('typing-indicator')) document.getElementById('typing-indicator').remove();
+        document.getElementById('typing-indicator')?.remove();
         displayMessage('ai', "Zii, network imekataa.");
     }
 }
 
-// 5. THE VOICE ENGINE (MiniMax API connection)
+// 5. VOICE ENGINE
 async function playPhestyVoice(text) {
     if(!text) return;
     try {
@@ -124,4 +109,4 @@ async function playPhestyVoice(text) {
 
 function scrollToBottom() { const b = document.getElementById('chat-box'); if(b) b.scrollTop = b.scrollHeight; }
 function handleKey(e) { if (e.key === 'Enter') sendMsg(); }
-                             
+                
