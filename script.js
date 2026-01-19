@@ -1,7 +1,7 @@
 const userImg = "https://i.postimg.cc/rpD4fgxR/IMG-5898-2.jpg";
 const aiImg = "https://i.postimg.cc/L5tLzXfJ/IMG-6627-2.jpg";
 let chatHistory = JSON.parse(localStorage.getItem('phesty_memory')) || [];
-let currentAudio = null; // Track the current playing voice
+let currentAudio = null; // Track the playing voice
 
 window.addEventListener('load', () => {
     setTimeout(() => {
@@ -31,7 +31,7 @@ function displayMessage(role, text) {
     const wrapper = document.createElement('div');
     wrapper.className = `msg-wrapper ${role === 'user' ? 'user-wrapper' : 'ai-wrapper'}`;
     
-    // ACTION: Single tap to trigger voice, Double tap to kill it
+    // Tap to play voice, Double tap to stop
     const action = role === 'ai' ? `onclick="toggleSpeech(this, this.innerText)" ondblclick="stopSpeech()"` : "";
     
     wrapper.innerHTML = `
@@ -78,16 +78,13 @@ async function sendMsg() {
     }
 }
 
-// NEW MINIMAX VOICE TOGGLE
+// UPDATED VOICE LOGIC
 async function toggleSpeech(element, text) {
-    // If audio is already playing, stop it before starting new one
-    if (currentAudio) {
-        currentAudio.pause();
-        currentAudio = null;
-    }
-
-    // Visual cue: Dim bubble while fetching your voice
-    element.style.opacity = "0.6";
+    // 1. Prime the audio object immediately (Mobile unlock)
+    if (!currentAudio) { currentAudio = new Audio(); }
+    
+    currentAudio.pause();
+    element.style.opacity = "0.5"; // Visual feedback
 
     try {
         const response = await fetch('/api/voice', {
@@ -96,33 +93,30 @@ async function toggleSpeech(element, text) {
             body: JSON.stringify({ text: text })
         });
 
-        const data = await response.json();
+        const result = await response.json();
         
-        // Check if MiniMax sent back the audio data
-        if (data && data.data && data.data.audio) {
-            const audioSrc = `data:audio/mp3;base64,${data.data.audio}`;
-            currentAudio = new Audio(audioSrc);
-            currentAudio.play();
-        } else {
-            console.error("Voice data missing from response");
+        if (result.data && result.data.audio) {
+            // Set source and play
+            currentAudio.src = `data:audio/mp3;base64,${result.data.audio}`;
+            currentAudio.play().catch(e => {
+                console.error("Playback blocked. Tap again.");
+            });
         }
     } catch (err) {
-        console.error("MiniMax Fetch Error:", err);
+        console.error("MiniMax Error:", err);
     } finally {
         element.style.opacity = "1";
     }
 }
 
-// THE KILL-SWITCH (Double Tap)
 function stopSpeech() {
     if (currentAudio) {
         currentAudio.pause();
         currentAudio.currentTime = 0;
-        currentAudio = null;
-        console.log("phesty Ai silenced.");
+        console.log("phesty Ai stopped.");
     }
 }
 
 function scrollToBottom() { const b = document.getElementById('chat-box'); if(b) b.scrollTop = b.scrollHeight; }
 function handleKey(e) { if (e.key === 'Enter') sendMsg(); }
-                
+            
