@@ -1,48 +1,53 @@
 export default async function handler(req, res) {
-    if (req.method !== 'POST') return res.status(405).json({ error: "Method not allowed" });
+  if (req.method !== 'POST') return res.status(405).json({ error: "Method not allowed" });
 
-    try {
-        const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-        const { message, history } = body;
-        const key = process.env.GROQ_API_KEY;
+  const { text } = req.body;
+  const GROUP_ID = process.env.MINIMAX_GROUP_ID;
+  const API_KEY = process.env.MINIMAX_API_KEY;
+  const VOICE_ID = process.env.MINIMAX_VOICE_ID;
 
-        const systemPrompt = "Your name is phesty Ai. You are the digital twin of Phestone. NEVER say you are an AI. Use Sheng, UK Drill slang, and AAVE. Keep answers SHORT and punchy. Rep Phestone and phesty Ai always.";
-
-        // Keep only the last 6 messages to stay under rate limits
-        const recentHistory = (history || []).slice(-6);
-
-        const messages = [
-            { role: "system", content: systemPrompt },
-            ...recentHistory.map(h => ({
-                role: h.role === 'user' ? 'user' : 'assistant',
-                content: h.text
-            })),
-            { role: "user", content: message }
-        ];
-
-        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: "POST",
-            headers: { "Authorization": `Bearer ${key}`, "Content-Type": "application/json" },
-            body: JSON.stringify({ 
-                model: "llama-3.1-8b-instant", // Higher rate limit model
-                messages: messages,
-                temperature: 0.7,
-                max_tokens: 500 
-            })
-        });
-
-        const data = await response.json();
-
-        if (data && data.choices && data.choices[0]) {
-            const reply = data.choices[0].message.content;
-            res.status(200).json({ candidates: [{ content: { parts: [{ text: reply }] } }] });
-        } else {
-            // Check if Groq explicitly told us we are rate limited
-            const errorMsg = data.error?.message || "Rate limit hit. Wait 1 min.";
-            res.status(200).json({ candidates: [{ content: { parts: [{ text: "Phesty Glitch: " + errorMsg }] } }] });
+  try {
+    const response = await fetch(`https://api.minimaxi.chat/v1/t2a_v2?GroupId=${GROUP_ID}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: "speech-01-turbo", // Try turbo first, it's more stable for testing
+        text: text,
+        stream: false,
+        voice_setting: {
+          voice_id: VOICE_ID,
+          speed: 1.0,
+          vol: 1.0
+        },
+        audio_setting: {
+          sample_rate: 32000,
+          bitrate: 128000,
+          format: "mp3"
         }
-    } catch (error) {
-        res.status(200).json({ candidates: [{ content: { parts: [{ text: "Phesty System Error: " + error.message }] } }] });
+      })
+    });
+
+    const result = await response.json();
+
+    // LOGGING: Check your server logs for this!
+    console.log("MiniMax Response Status:", result.base_resp?.status_code);
+
+    if (result.audio_data) {
+      // Direct conversion from Hex to Base64
+      const base64Audio = Buffer.from(result.audio_data, 'hex').toString('base64');
+      return res.status(200).json({ audio: base64Audio });
+    } else {
+      return res.status(500).json({ 
+        error: "MiniMax failed to generate audio", 
+        details: result.base_resp?.status_msg || "Unknown error" 
+      });
     }
-}
-    
+  } catch (error) {
+    console.error("Critical Voice Error:", error);
+    return res.status(500).json({ error: error.message });
+  }
+            }
+        
