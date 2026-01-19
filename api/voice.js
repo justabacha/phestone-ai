@@ -3,6 +3,7 @@ export default async function handler(req, res) {
 
   try {
     const { text } = req.body;
+    console.log("Generating voice for:", text); // Debug log
 
     const response = await fetch(`https://api.minimaxi.chat/v1/t2a_v2?GroupId=${process.env.MINIMAX_GROUP_ID}`, {
       method: 'POST',
@@ -18,29 +19,28 @@ export default async function handler(req, res) {
           speed: 1.0,
           vol: 1.0
         },
-        // hex is the default, which we will convert to base64
         output_format: "mp3" 
       })
     });
 
     const data = await response.json();
 
-    // MiniMax returns audio in 'data.audio_data'. 
-    // We need to make sure we send it back in the 'data.data.audio' format your script expects.
-    if (data && data.audio_data) {
-      res.status(200).json({
-        data: {
-          audio: data.audio_data
-        }
-      });
+    // If MiniMax returns an error, we'll see it here
+    if (data.base_resp && data.base_resp.status_code !== 0) {
+      console.error("MiniMax Error:", data.base_resp.status_msg);
+      return res.status(500).json({ error: data.base_resp.status_msg });
+    }
+
+    if (data.audio_data) {
+      // Send it back exactly how script.js wants it
+      res.status(200).json({ data: { audio: data.audio_data } });
     } else {
-      console.error("MiniMax Error Response:", data);
-      res.status(500).json({ error: "Voice generation failed", details: data });
+      res.status(500).json({ error: "No audio data received" });
     }
 
   } catch (error) {
-    console.error("Server Error:", error);
+    console.error("Voice Handler Crash:", error);
     res.status(500).json({ error: error.message });
   }
-                 }
-      
+}
+  
