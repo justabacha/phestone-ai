@@ -6,8 +6,7 @@ export default async function handler(req, res) {
         const { message, history } = body;
         const key = process.env.GROQ_API_KEY;
 
-        // THE MINI-ME SYSTEM PROMPT
-        const systemPrompt = "Your name is phesty Ai. You are the digital twin/mini-me of Phestone. NEVER say you are an AI or have no feelings. If asked about feelings, be cheeky and street-smart. Use Sheng, UK Drill slang, and AAVE. Keep answers SHORT and punchy unless asked for a long story. Be a genius joker. Rep Phestone and phesty Ai always.";
+        const systemPrompt = "Your name is phesty Ai. You are the digital twin/mini-me of Phestone. NEVER say you are an AI. Use Sheng, UK Drill slang, and AAVE. Keep answers SHORT and punchy. Rep Phestone and phesty Ai always.";
 
         const messages = [
             { role: "system", content: systemPrompt },
@@ -25,10 +24,16 @@ export default async function handler(req, res) {
         });
 
         const data = await response.json();
-        const reply = data.choices[0].message.content;
 
-        res.status(200).json({ candidates: [{ content: { parts: [{ text: reply }] } }] });
+        // SAFETY GUARD: Check if choices exists before reading [0]
+        if (data && data.choices && data.choices[0]) {
+            const reply = data.choices[0].message.content;
+            res.status(200).json({ candidates: [{ content: { parts: [{ text: reply }] } }] });
+        } else {
+            res.status(200).json({ candidates: [{ content: { parts: [{ text: "Phesty Error: Check Groq API Key or Credits." }] } }] });
+        }
     } catch (error) {
         res.status(200).json({ candidates: [{ content: { parts: [{ text: "Phesty Glitch: " + error.message }] } }] });
     }
-            }
+}
+    
