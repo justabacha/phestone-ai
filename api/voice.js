@@ -11,23 +11,32 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: "speech-01-turbo", 
+        model: "speech-02-hd", // Using the HD model for better compatibility
         text: text,
-        voice_setting: { voice_id: process.env.MINIMAX_VOICE_ID, speed: 1.0, vol: 1.0 },
-        audio_setting: { sample_rate: 32000, bitrate: 128000, format: "mp3" }
+        voice_setting: { 
+          voice_id: process.env.MINIMAX_VOICE_ID, 
+          speed: 1.0, 
+          vol: 1.0 
+        },
+        audio_setting: { 
+          sample_rate: 32000, 
+          bitrate: 128000, 
+          format: "mp3" 
+        }
       })
     });
 
     const data = await response.json();
 
     if (data.audio_data) {
-      // THE KEY: Convert Hex to Base64 so 'result.audio' works in your script
       const base64Audio = Buffer.from(data.audio_data, 'hex').toString('base64');
       res.status(200).json({ audio: base64Audio });
     } else {
-      res.status(500).json({ error: "No audio data", details: data });
+      // THIS LINE IS KEY: It sends the specific MiniMax error message to your screen
+      const errorDetail = data.base_resp?.status_msg || "Check API Key/Balance";
+      res.status(500).json({ error: "MiniMax Error: " + errorDetail });
     }
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-      }
+          }
