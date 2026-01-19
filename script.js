@@ -3,7 +3,7 @@ const aiImg = "https://i.postimg.cc/L5tLzXfJ/IMG-6627-2.jpg";
 let chatHistory = JSON.parse(localStorage.getItem('phesty_memory')) || [];
 let currentAudio = null; 
 
-// 1. SPLASH SCREEN LOGIC
+// 1. SPLASH SCREEN
 window.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         const splash = document.getElementById('splash-screen');
@@ -14,7 +14,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }, 6000); 
 });
 
-// 2. BACKGROUND PERSISTENCE
+// 2. BACKGROUND
 const savedBg = localStorage.getItem('phesty_bg');
 if (savedBg) document.body.style.backgroundImage = `url(${savedBg})`;
 
@@ -30,7 +30,7 @@ document.getElementById('bg-upload').addEventListener('change', (e) => {
     }
 });
 
-// 3. MESSAGE DISPLAY
+// 3. DISPLAY MESSAGE
 function displayMessage(role, text) {
     const chatBox = document.getElementById('chat-box');
     if (!chatBox) return;
@@ -49,7 +49,7 @@ function displayMessage(role, text) {
     scrollToBottom();
 }
 
-// 4. CHAT LOGIC WITH ERROR LOGGING
+// 4. CHAT LOGIC (Fixed: Text won't crash if voice fails)
 async function sendMsg() {
     const input = document.getElementById('userMsg');
     const text = input.value.trim();
@@ -71,11 +71,10 @@ async function sendMsg() {
         const res = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: text, history: chatHistory.slice(-6) }) // Keeps tokens low
+            body: JSON.stringify({ message: text, history: chatHistory.slice(-6) })
         });
         
         const data = await res.json();
-        
         if (document.getElementById('typing-indicator')) document.getElementById('typing-indicator').remove();
 
         if (data.candidates && data.candidates[0]) {
@@ -83,17 +82,15 @@ async function sendMsg() {
             displayMessage('ai', reply);
             chatHistory.push({ role: 'ai', text: reply });
             localStorage.setItem('phesty_memory', JSON.stringify(chatHistory));
-        } else {
-            throw new Error(data.error || "Invalid Response Format");
         }
     } catch (e) {
         if (document.getElementById('typing-indicator')) document.getElementById('typing-indicator').remove();
-        console.error("Phesty Debug:", e);
-        displayMessage('ai', "Zii, network imekataa. Check console: " + e.message);
+        displayMessage('ai', "Zii, network imekataa.");
+        console.error("Chat Error:", e);
     }
 }
 
-// 5. VOICE LOGIC (Optimized for Base64)
+// 5. VOICE LOGIC (Independent)
 async function toggleSpeech(element, text) {
     if (!currentAudio) { currentAudio = new Audio(); }
     currentAudio.pause();
@@ -110,7 +107,10 @@ async function toggleSpeech(element, text) {
         
         if (result.audio) {
             currentAudio.src = `data:audio/mp3;base64,${result.audio}`;
-            currentAudio.play().catch(e => console.log("Tap again to unlock audio."));
+            currentAudio.play().catch(e => console.log("Tap to unlock audio."));
+        } else {
+            // If voice fails, we just alert it but the chat stays visible
+            console.error("Voice failed:", result.error);
         }
     } catch (err) {
         console.error("Voice Error:", err);
@@ -119,13 +119,7 @@ async function toggleSpeech(element, text) {
     }
 }
 
-function stopSpeech() {
-    if (currentAudio) {
-        currentAudio.pause();
-        currentAudio.currentTime = 0;
-    }
-}
-
+function stopSpeech() { if (currentAudio) { currentAudio.pause(); currentAudio.currentTime = 0; } }
 function scrollToBottom() { const b = document.getElementById('chat-box'); if(b) b.scrollTop = b.scrollHeight; }
 function handleKey(e) { if (e.key === 'Enter') sendMsg(); }
             
