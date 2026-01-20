@@ -11,15 +11,24 @@ html, body {
 
 /* THE THIN GLASS LAYER */
 .thin-header { 
-    position: fixed; top: 0; left: 0; width: 100%;
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%;
     height: 95px; 
     padding: 55px 20px 10px; 
-    display: flex; justify-content: space-between; align-items: center;
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
     z-index: 1000;
-    background: rgba(0, 0, 0, 0.2); 
-    backdrop-filter: blur(15px); 
-    -webkit-backdrop-filter: blur(15px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    
+    /* THE GHOST LAYER FIX */
+    background: transparent; /* Removes the black tint so wallpaper shows */
+    backdrop-filter: blur(20px) saturate(180%); /* Increased blur to hide text fully */
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    
+    /* Optional: very faint glow to separate it from the chat */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05); 
 }
 
 .thin-header h1 { 
