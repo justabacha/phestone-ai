@@ -1,7 +1,5 @@
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { text } = req.body;
 
@@ -30,19 +28,21 @@ export default async function handler(req, res) {
       }),
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      return res.status(response.status).json({ error: errorData });
+    const result = await response.json();
+
+    // Check if the API returned an error code (MiniMax uses base_resp)
+    if (result.base_resp && result.base_resp.status_code !== 0) {
+        return res.status(400).json({ 
+            error: "MiniMax Error", 
+            details: result.base_resp.status_msg 
+        });
     }
 
-    const data = await response.json();
-    
-    // MiniMax V2 returns a trace_id and the data in a specific structure
-    // We send the audio data back to our Lab UI
-    res.status(200).json(data);
+    // Return the full result to the lab
+    res.status(200).json(result);
 
   } catch (error) {
-    console.error('Voice Lab Error:', error);
-    res.status(500).json({ error: 'Internal Server Error', details: error.message });
+    res.status(500).json({ error: 'Server Crash', details: error.message });
   }
-            }
+        }
+      
