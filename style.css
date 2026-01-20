@@ -8,8 +8,7 @@ html, body {
     background-size: cover !important; background-attachment: fixed !important;
     font-family: -apple-system, sans-serif; overflow: hidden;
 }
-
-/* THE THIN GLASS LAYER */
+/* 1. THE GHOST HEADER (Transparent & Clear) */
 .thin-header { 
     position: fixed; 
     top: 0; 
@@ -21,15 +20,20 @@ html, body {
     justify-content: space-between; 
     align-items: center;
     z-index: 1000;
-    
-    /* Clear Glass Look */
-    background: rgba(255, 255, 255, 0.01); 
-    backdrop-filter: blur(25px) saturate(150%);
-    -webkit-backdrop-filter: blur(25px) saturate(150%);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: transparent; /* No color, shows wallpaper */
+    backdrop-filter: none;    /* No blur, keeping it crystal clear */
 }
 
-/* THE MAGIC VANISH LOGIC */
+/* 2. THE TITLE STYLE (Keep this!) */
+.thin-header h1 { 
+    font-size: 1.1rem; 
+    color: var(--accent); 
+    letter-spacing: 3px; 
+    margin: 0; 
+    font-weight: 400;
+}
+
+/* 3. THE CHAT BOX (Magic Vanish Logic) */
 .chat-box { 
     height: 100vh; 
     overflow-y: auto; 
@@ -38,21 +42,20 @@ html, body {
     flex-direction: column; 
     gap: 15px; 
     
-    /* This masks the messages so they fade out before hitting the header */
-    mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 90%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 90%, transparent 100%);
-}
-
-.thin-header h1 { 
-    font-size: 1.1rem; color: var(--accent); 
-    letter-spacing: 3px; margin: 0; font-weight: 400;
-}
-
-.chat-box { 
-    height: 100vh; overflow-y: auto; 
-    padding: 110px 20px 150px; 
-    display: flex; flex-direction: column; gap: 15px; 
-}
+    /* This makes messages fade out to 0% before they reach the header */
+    -webkit-mask-image: linear-gradient(to bottom, 
+        transparent 0%, 
+        transparent 8%, 
+        black 20%, 
+        black 90%, 
+        transparent 100%);
+    mask-image: linear-gradient(to bottom, 
+        transparent 0%, 
+        transparent 8%, 
+        black 20%, 
+        black 90%, 
+        transparent 100%);
+    }
 
 .msg-wrapper { display: flex; align-items: flex-end; gap: 10px; max-width: 85%; }
 .user-wrapper { align-self: flex-end; flex-direction: row-reverse; }
