@@ -1,42 +1,48 @@
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ error: "Method not allowed" });
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const { text } = req.body;
 
   try {
-    const { text } = req.body;
-
-    const response = await fetch(`https://api.minimaxi.chat/v1/t2a_v2?GroupId=${process.env.MINIMAX_GROUP_ID}`, {
+    const response = await fetch(`https://api.minimax.chat/v1/t2a_v2?GroupId=${process.env.MINIMAX_GROUP_ID}`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${process.env.MINIMAX_API_KEY}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: "speech-02-hd", // Using the HD model for better compatibility
+        model: "speech-01",
         text: text,
-        voice_setting: { 
-          voice_id: process.env.MINIMAX_VOICE_ID, 
-          speed: 1.0, 
-          vol: 1.0 
+        stream: false,
+        voice_setting: {
+          voice_id: process.env.MINIMAX_VOICE_ID,
+          speed: 1.0,
+          vol: 1.0,
+          pitch: 0
         },
-        audio_setting: { 
-          sample_rate: 32000, 
-          bitrate: 128000, 
-          format: "mp3" 
+        audio_setting: {
+          sample_rate: 32000,
+          bitrate: 128000,
+          format: "mp3"
         }
-      })
+      }),
     });
 
-    const data = await response.json();
-
-    if (data.audio_data) {
-      const base64Audio = Buffer.from(data.audio_data, 'hex').toString('base64');
-      res.status(200).json({ audio: base64Audio });
-    } else {
-      // THIS LINE IS KEY: It sends the specific MiniMax error message to your screen
-      const errorDetail = data.base_resp?.status_msg || "Check API Key/Balance";
-      res.status(500).json({ error: "MiniMax Error: " + errorDetail });
+    if (!response.ok) {
+      const errorData = await response.json();
+      return res.status(response.status).json({ error: errorData });
     }
+
+    const data = await response.json();
+    
+    // MiniMax V2 returns a trace_id and the data in a specific structure
+    // We send the audio data back to our Lab UI
+    res.status(200).json(data);
+
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Voice Lab Error:', error);
+    res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
-          }
+            }
