@@ -9,7 +9,7 @@ export default async function handler(req, res) {
 
   try {
     // 🔥 THE FIX: The GroupId MUST be in the URL string below
-    const response = await fetch(`https://api.minimax.chat/v1/t2a_v2?GroupId=${groupId}`, {
+    const response = await fetch(`https://api.minimax.io/v1/t2a_v2?GroupId=${groupId}`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
