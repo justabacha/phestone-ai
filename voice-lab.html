@@ -30,49 +30,48 @@
     <audio id="audioPlayer" controls style="display:none;"></audio>
 
     <script>
-    const speakBtn = document.getElementById('speakBtn');
-const testText = document.getElementById('testText');
-const consoleLog = document.getElementById('console');
-const audioPlayer = document.getElementById('audioPlayer');
+        const speakBtn = document.getElementById('speakBtn');
+        const testText = document.getElementById('testText');
+        const consoleLog = document.getElementById('console');
+        const audioPlayer = document.getElementById('audioPlayer');
 
-function log(msg, color = "#888") {
-    consoleLog.innerHTML += `<br><span style="color:${color}">> ${msg}</span>`;
-    consoleLog.scrollTop = consoleLog.scrollHeight;
-}
-
-speakBtn.addEventListener('click', async () => {
-    const text = testText.value.trim();
-    if (!text) return log("Error: Please type something first!", "#ff4444");
-
-    speakBtn.disabled = true;
-    log("Sending text to API...", "#00ff88");
-
-    try {
-        const response = await fetch('/api/voice', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text })
-        });
-
-        const data = await response.json();
-
-        if (data.data && data.data.audio) {
-            log("Audio received! Playing now...", "#00ff88");
-            
-            // MiniMax returns base64 audio data. We convert it to a playble source.
-            const audioData = data.data.audio;
-            audioPlayer.src = `data:audio/mp3;base64,${audioData}`;
-            audioPlayer.play();
-        } else {
-            log("Error: No audio data in response", "#ff4444");
-            console.log(data);
+        function log(msg, color = "#888") {
+            consoleLog.innerHTML += `<br><span style="color:${color}">> ${msg}</span>`;
+            consoleLog.scrollTop = consoleLog.scrollHeight;
         }
-    } catch (err) {
-        log(`System Error: ${err.message}`, "#ff4444");
-    } finally {
-        speakBtn.disabled = false;
-    }
-});                   
+
+        speakBtn.addEventListener('click', async () => {
+            const text = testText.value.trim();
+            if (!text) return log("Error: Please type something first!", "#ff4444");
+
+            speakBtn.disabled = true;
+            log("Sending text to API...", "#00ff88");
+
+            try {
+                const response = await fetch('/api/voice', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+
+                const data = await response.json();
+
+                if (data.data && data.data.audio) {
+                    log("Audio received! Playing now...", "#00ff88");
+                    const audioData = data.data.audio;
+                    audioPlayer.src = `data:audio/mp3;base64,${audioData}`;
+                    audioPlayer.play();
+                } else if (data.details) {
+                    log(`MiniMax Said: ${data.details}`, "#ff4444");
+                } else {
+                    log("Error: No audio data in response", "#ff4444");
+                }
+            } catch (err) {
+                log(`System Error: ${err.message}`, "#ff4444");
+            } finally {
+                speakBtn.disabled = false;
+            }
+        });
     </script>
 </body>
 </html>
