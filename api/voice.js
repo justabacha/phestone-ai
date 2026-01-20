@@ -1,6 +1,12 @@
 export default async function handler(req, res) {
+  // DIAGNOSTIC CHECK
+  if (!process.env.MINIMAX_API_KEY) {
+    return res.status(500).json({ error: "The Server can't see your API Key. Check Vercel names!" });
+  }
+  
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-
+  // ... rest of the code
+  
   const { text } = req.body;
 
   try {
