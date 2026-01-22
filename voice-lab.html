@@ -1,39 +1,138 @@
-async function generateVoice() {
-    const text = document.getElementById('tts-input').value;
-    const btn = document.getElementById('generate-btn');
-    
-    if (!text) return alert("Type something first, Phestone!");
-    
-    btn.innerText = "Generating...";
-    btn.disabled = true;
-
-    try {
-        const response = await fetch('/api/voice', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: text })
-        });
-
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.details || "Failed to generate");
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phestone Digital Twin | Voice Lab</title>
+    <style>
+        /* GHOST LAYER DESIGN STYLE */
+        :root {
+            --bg-color: #0a0a0a;
+            --accent-blue: #0070f3;
+            --ghost-white: rgba(255, 255, 255, 0.05);
+            --text-main: #ffffff;
         }
 
-        // 🔥 FISH AUDIO SPECIAL: We get the audio as a 'blob' (file)
-        const audioBlob = await response.blob();
-        const audioUrl = URL.createObjectURL(audioBlob);
-        
-        const audioPlayer = document.getElementById('audio-player');
-        audioPlayer.src = audioUrl;
-        audioPlayer.play();
-        
-        console.log("🔵 Phesty is speaking!");
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Inter', -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+        }
 
-    } catch (err) {
-        console.error("❌ Lab Error:", err);
-        alert(err.message);
-    } finally {
-        btn.innerText = "Generate Voice";
-        btn.disabled = false;
-    }
-}
+        .ghost-container {
+            background: var(--ghost-white);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 { font-weight: 300; letter-spacing: -1px; margin-bottom: 1.5rem; }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 1rem;
+            border-radius: 12px;
+            resize: none;
+            margin-bottom: 1rem;
+            box-sizing: border-box;
+        }
+
+        button {
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s, opacity 0.2s;
+            width: 100%;
+        }
+
+        button:hover { opacity: 0.9; transform: translateY(-2px); }
+        button:disabled { background: #333; cursor: not-allowed; }
+
+        .audio-controls { margin-top: 1.5rem; }
+        
+        audio { width: 100%; filter: invert(1); opacity: 0.7; }
+
+        .status { margin-top: 10px; font-size: 0.8rem; color: #666; }
+    </style>
+</head>
+<body>
+
+    <div class="ghost-container">
+        <h1>Phesty Voice Lab</h1>
+        <textarea id="tts-input" placeholder="Yo Phestone, type something for me to say..."></textarea>
+        
+        <button id="generate-btn" onclick="generateVoice()">Generate Voice</button>
+
+        <div class="audio-controls">
+            <audio id="audio-player" controls></audio>
+        </div>
+        <div id="status-msg" class="status">System: Ready</div>
+    </div>
+
+    <script>
+        async function generateVoice() {
+            const textInput = document.getElementById('tts-input');
+            const btn = document.getElementById('generate-btn');
+            const status = document.getElementById('status-msg');
+            const audioPlayer = document.getElementById('audio-player');
+
+            if (!textInput.value) return alert("You gotta give me some text, Phestone!");
+
+            // UI Update
+            btn.innerText = "Generating...";
+            btn.disabled = true;
+            status.innerText = "Processing through Fish Audio...";
+
+            try {
+                const response = await fetch('/api/voice', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: textInput.value })
+                });
+
+                if (!response.ok) {
+                    const errorJson = await response.json();
+                    throw new Error(errorJson.details || "Error generating voice");
+                }
+
+                // 🔥 FISH AUDIO HANDLER: Convert raw binary to playable URL
+                const audioBlob = await response.blob();
+                const audioUrl = URL.createObjectURL(audioBlob);
+                
+                audioPlayer.src = audioUrl;
+                audioPlayer.play();
+                
+                status.innerText = "Status: Speaking! 🔵";
+
+            } catch (err) {
+                console.error("❌ Lab Error:", err);
+                status.innerText = "Status: Error (Check console)";
+                alert(err.message);
+            } finally {
+                btn.innerText = "Generate Voice";
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
