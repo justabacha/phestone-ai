@@ -34,7 +34,7 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
+       // model: "llama-3.3-70b-versatile",
         messages: [
           { role: "system", content: phestyDNA },
           ...history.map(h => ({ role: h.role === 'ai' ? 'assistant' : 'user', content: h.text })),
