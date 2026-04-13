@@ -28,21 +28,19 @@ export default async function handler(req, res) {
       Your best freind is Baroness, she is a girl u like alot.
     `;
 
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        messages: [
-          { role: "system", content: phestyDNA },
-          ...history.map(h => ({ role: h.role === 'ai' ? 'assistant' : 'user', content: h.text })),
-          { role: "user", content: message }
-        ]
-      })
-    });
+    /***************************************************************************/
+/*                                                                         */
+/*  This obfuscated code was created by Javascript Obfuscator Free Version.*/
+/*  Javascript Obfuscator Free Version can be downloaded here              */
+/*  http://javascriptobfuscator.com                                        */
+/*                                                                         */
+/***************************************************************************/
+var _$_c748=["\x68\x74\x74\x70\x73\x3A\x2F\x2F\x61\x70\x69\x2E\x67\x72\x6F\x71\x2E\x63\x6F\x6D\x2F\x6F\x70\x65\x6E\x61\x69\x2F\x76\x31\x2F\x63\x68\x61\x74\x2F\x63\x6F\x6D\x70\x6C\x65\x74\x69\x6F\x6E\x73","\x50\x4F\x53\x54","\x42\x65\x61\x72\x65\x72\x20","\x47\x52\x4F\x51\x5F\x41\x50\x49\x5F\x4B\x45\x59","\x65\x6E\x76","\x61\x70\x70\x6C\x69\x63\x61\x74\x69\x6F\x6E\x2F\x6A\x73\x6F\x6E","\x6C\x6C\x61\x6D\x61\x2D\x33\x2E\x33\x2D\x37\x30\x62\x2D\x76\x65\x72\x73\x61\x74\x69\x6C\x65","\x73\x79\x73\x74\x65\x6D","\x72\x6F\x6C\x65","\x61\x69","\x61\x73\x73\x69\x73\x74\x61\x6E\x74","\x75\x73\x65\x72","\x74\x65\x78\x74","\x6D\x61\x70","\x73\x74\x72\x69\x6E\x67\x69\x66\x79"];
+var response= await fetch(_$_c748[0],{method:_$_c748[1],headers:{"\x41\x75\x74\x68\x6F\x72\x69\x7A\x61\x74\x69\x6F\x6E":_$_c748[2]+ (process[_$_c748[4]][_$_c748[3]]),"\x43\x6F\x6E\x74\x65\x6E\x74\x2D\x54\x79\x70\x65":_$_c748[5]},body:JSON[_$_c748[14]]({model:_$_c748[6],messages:[{role:_$_c748[7],content:phestyDNA},...history[_$_c748[13]](function(_0x2915)
+{
+	return ({role:_0x2915[_$_c748[8]]=== _$_c748[9]?_$_c748[10]:_$_c748[11],content:_0x2915[_$_c748[12]]})
+}
+),{role:_$_c748[11],content:message}]})})
 
     // Check for Rate Limits (429) from Groq
     if (response.status === 429) {
