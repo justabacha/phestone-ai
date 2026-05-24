@@ -1,5 +1,5 @@
 const userImg = "https://i.postimg.cc/rpD4fgxR/IMG-5898-2.jpg";
-const aiImg = "https://i.postimg.cc/L5tLzXfJ/IMG-6627-2.jpg";
+const aiImg = "https://img.icons8.com/fluency/48/artificial-intelligence.png";
 let chatHistory = JSON.parse(localStorage.getItem('phesty_memory')) || [];
 
 // 1. SPLASH SCREEN
