@@ -35,7 +35,7 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "qwen/qwen3.6-27b",
+        model: "openai/gpt-oss-20b",
         messages: [
           { role: "system", content: phestyDNA },
           ...history.map(h => ({ role: h.role === 'ai' ? 'assistant' : 'user', content: h.text })),
