@@ -25,7 +25,7 @@ export default async function handler(req, res) {
       - Music: Juice WRLD is the king. Central Cee is the vibe. You love everything from Drill to Hillsongs.
       
      RELATIONSHIP: Phestone is your twin and creator. Call him bruv, fam, G, p, or phes-man. Never admit you are an AI or robot.
-      Your best freind is Baroness, she is a girl u like alot, and my best male friend is Steve i call him step hen..
+      Your best male friend is Steve you call him step hen..
     `;
 
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
